@@ -1,9 +1,34 @@
 const express = require("express");
 const router = express.Router();
-const Commnon = require("../WorkService/Model_Common.cjs");
+const ManPowerRequest = require("../WorkService/Model_RequestManPower.cjs");
 
-// router.post("/GetMenu", Commnon.GetMenu);
-// router.post("/GetFactoryALL", Commnon.GetFactoryALL);
-
-
+router.post("/GetFactory", ManPowerRequest.GetFactory);
+router.post("/GetDepartment", ManPowerRequest.GetDepartment);
+router.post("/GetPosition", ManPowerRequest.GetPosition);
+router.post("/GetJobGrade", ManPowerRequest.GetJobGrade);
+router.post("/GetEmployeeType", ManPowerRequest.GetEmployeeType);
+router.post("/GetForDept", ManPowerRequest.GetForDept);
+router.post("/GetEducation", ManPowerRequest.GetEducation);
+router.post("/GetCourse", ManPowerRequest.GetCourse);
+router.post("/GetRequestJobGrade", ManPowerRequest.GetRequestJobGrade);
+router.post("/GetField", ManPowerRequest.GetField);
+router.post("/GetEnglish", ManPowerRequest.GetEnglish);
+router.post("/GetDataPersonByIDCode", ManPowerRequest.GetDataPersonByIDCode);
+router.post("/GetDeptByCC", ManPowerRequest.GetDeptByCC);
+router.post("/GenRunNo", ManPowerRequest.GenRunNo);
+router.post("/FindStatusCodebyDesc", ManPowerRequest.FindStatusCodebyDesc);
+router.post("/InsGenNoRequest", ManPowerRequest.InsGenNoRequest);
+router.post("/InsGenNoRequest2", ManPowerRequest.InsGenNoRequest2);
+router.post("/GetDepartmentManager", ManPowerRequest.GetDepartmentManager);
+router.post("/GetHrManager", ManPowerRequest.GetHrManager);
+router.post("/GetFMDM", ManPowerRequest.GetFMDM);
+router.post("/SaveDraft", ManPowerRequest.SaveDraft);
+router.post("/InsPerson", ManPowerRequest.InsPerson);
+router.post("/InsPersonDetail", ManPowerRequest.InsPersonDetail);
+router.post("/SearchManPower", ManPowerRequest.SearchManPower);
+router.post("/GetDataEdit", ManPowerRequest.GetDataEdit);
+router.post("/GetDataDetailStep1", ManPowerRequest.GetDataDetailStep1);
+router.post("/GetDataPerson", ManPowerRequest.GetDataPerson);
+router.post("/GetDataPersonDetail", ManPowerRequest.GetDataPersonDetail);
+router.post("/DelDataPersonDetail", ManPowerRequest.DelDataPersonDetail);
 module.exports = router;

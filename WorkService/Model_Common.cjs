@@ -11,7 +11,6 @@ module.exports.GetMenu = async function (req, res) {
   var query = "";
   try {
     const Conn = await ConnectOracleDB("CUSR");
-    console.log("ConnectOracleDB");
     query += `
          SELECT
               MENU_NAME,
@@ -47,7 +46,6 @@ module.exports.GetFactory = async function (req, res) {
   var query = "";
   try {
     const Conn = await ConnectOracleDB("CUSR");
-    console.log("ConnectOracleDB");
     query += `select t.factory_code,t.factory_name from cusr.cu_factory_m t where t.factory_status = 'A' order by t.factory_code`;
     const result = await Conn.execute(query);
     const jsonData = result.rows.map((row) => ({
@@ -94,3 +92,37 @@ module.exports.Login = async function (req, res) {
     res.status(500).json({ message: error.message });
   }
 };
+module.exports.GetDataUser = async function (req, res) {
+  var query = "";
+  try {
+    const Conn = await ConnectOracleDB("CUSR");
+    const { loginID} = req.body;
+    query += `
+              SELECT M.USER_EMP_ID AS EMP,
+              M.USER_LOGIN AS LOGIN,
+              M.USER_PASSWORD  AS PASSWORD,
+              M.USER_EMAIL  AS EMAIL,
+              M.USER_FACTORY AS FAC_CODE,
+              M.USER_COSTCENTER AS COSTCENTER
+              FROM  cu_user_m M
+              INNER JOIN CU_USER_HUMANTRIX H ON USER_EMP_ID =  EMPCODE
+              WHERE UPPER(M.USER_LOGIN)  =UPPER('${loginID}')`;
+    const result = await Conn.execute(query);
+    const jsonData = result.rows.map((row) => ({
+      EMP: row[0],
+      LOGIN: row[1],
+      PASSWORD: row[2],
+      EMAIL: row[3],
+      FAC_CODE: row[4],
+      COSTCENTER: row[5],
+    }));
+    res.status(200).json(jsonData);
+    DisconnectOracleDB(Conn);
+  } catch (error) {
+    writeLogError(error.message, query);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+
+
