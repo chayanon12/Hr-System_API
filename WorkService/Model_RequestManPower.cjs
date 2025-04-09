@@ -429,10 +429,6 @@ module.exports.InsGenNoRequest2 = async function (req, res) {
     client = await ConnectPG_DB();
     const { ReqNo, EmpType, txt_Other, Create_by, Emp_Req } = req.body;
     console.log(req.body, "InsGenNoRequest");
-    // const query1 = `
-    //     INSERT INTO "HR".hrdwmr_person_det
-    //     (mrpd_hreq_no, mrpd_record_id, mrpd_category,mrpd_value, mrpd_value_other,mrpd_create_date,mrpd_create_by,mrpd_value_add)
-    //     VALUES('${ReqNo}', 'ALL', 'REQUIREMENT','${Emp_Req}', '${txt_Other}',current_timestamp,'${Create_by}','${EmpType}')`;
     const query1 = `
         MERGE INTO "HR".hrdwmr_person_det AS target
         USING (SELECT 
@@ -586,17 +582,19 @@ module.exports.SaveDraft = async function (req, res) {
       FMGMBy,
       HRMBy,
       UpdateBy,
+      Status,
     } = req.body;
     console.log(req.body, "SaveDraft");
     query = `
             update "HR".hrdwmr_header set
               ----step1
+              mrh_req_status = '${Status}',
               mrh_req_email = '${Email}',
               mrh_req_tel = '${Tel}',
               mrh_target_date = TO_DATE('${DateTarget}',  'YYYY-MM-DD'),
               mrh_total_amount = ${TotalReq},
               mrh_req_remark = '${Remark}',
-              ------
+              ------ 
               --sub
               mrh_subs_flg = '${Cb_Sub}',
               mrh_subs_amount = ${Total_Sub},
@@ -616,7 +614,11 @@ module.exports.SaveDraft = async function (req, res) {
               mrh_fm_by = '${FMGMBy}',
               mrh_hrm_by = '${HRMBy}',
               mrh_update_date = current_timestamp,
-              mrh_update_by = '${UpdateBy}'
+              mrh_update_by = '${UpdateBy}',
+              mrh_send_date = case
+                when '${Status}' = 'MR0102' then current_timestamp
+                else mrh_send_date
+              end
             where
               mrh_req_no = '${ReqNo}'`;
     console.log(query, "QuerySaveDraft");
@@ -884,8 +886,12 @@ module.exports.GetDataEdit = async function (req, res) {
     query = `
         select H.*,
           C.hdcm_desc as STS_DESC,
-          TO_CHAR(H.mrh_req_date,'DD/MM/YY') as REQ_DATE, 
-          TO_CHAR(H.mrh_target_date,'DD/MM/YY') as TARGET_DATE,
+          C.hdcm_cmmt1 as StatusType,
+          TO_CHAR(H.mrh_req_date,'DD/MM/YYYY') as REQ_DATE, 
+          TO_CHAR(H.mrh_target_date,'DD/MM/YYYY') as TARGET_DATE,
+          TO_CHAR(H.mrh_dept_date, 'DD/MM/YYYY HH24:MI:SS') AS dept_date,
+          TO_CHAR(H.mrh_fm_date, 'DD/MM/YYYY HH24:MI:SS') AS fm_date,
+          TO_CHAR(H.mrh_hrm_date, 'DD/MM/YYYY HH24:MI:SS') AS hr_date,
           M.factory_name as FAC_DESC
         FROM "HR".HRDWMR_HEADER H
         INNER JOIN "CUSR".cu_factory_m M ON H.mrh_factory = M.factory_code
@@ -901,6 +907,7 @@ module.exports.GetDataEdit = async function (req, res) {
       Fac_code: row.mrh_factory,
       Status_Desc: row.sts_desc,
       Status_code: row.mrh_req_status,
+      Status_Type: row.statustype,
       Req_date: row.req_date,
       Req_No: row.mrh_req_no,
       Req_By: row.mrh_req_by,
@@ -927,17 +934,17 @@ module.exports.GetDataEdit = async function (req, res) {
       //Step3
       //Dept
       Dept_by: row.mrh_dept_by,
-      Dept_date: row.mrh_dept_date,
+      Dept_date: row.dept_date,
       Dept_Radio: row.mrh_dept_flg,
       Dept_Comment: row.mrh_dept_comment,
       //FMGM
       FMGM_By: row.mrh_fm_by,
-      FMGM_Date: row.mrh_fm_date,
+      FMGM_Date: row.fm_date,
       FMGM_Radio: row.mrh_fm_flg,
       FMGM_Comment: row.mrh_fm_comment,
       //Hr
       Hr_By: row.mrh_hrm_by,
-      Hr_Date: row.mrh_hrm_date,
+      Hr_Date: row.hr_date,
       Hr_Radio: row.mrh_hrm_flg,
       Hr_Comment: row.mrh_hrm_comment,
       //Step4 Waiting
@@ -982,10 +989,10 @@ module.exports.GetDataPerson = async function (req, res) {
     const client = await ConnectPG_DB();
     const { ReqNo } = req.body;
     console.log(ReqNo, "GetDataPerson1");
-    query = `select * from  "HR".HRDWMR_PERSON where mrp_hreq_no='${ReqNo}' `;
+    query = `select *,TO_CHAR(mrp_join_date,'DD/MM/YYYY') as join_date from  "HR".HRDWMR_PERSON where mrp_hreq_no='${ReqNo}' `;
     console.log(query);
     const result = await client.query(query);
-    console.log(result.rows, "GetDataPerson>>>>");
+    console.log(result.rows, "GetDataPerson33>>>>");
     const jsonData = result.rows.map((row) => ({
       //Step1
       ReqNo: row.mrp_hreq_no,
@@ -1003,7 +1010,14 @@ module.exports.GetDataPerson = async function (req, res) {
       lang_other: row.mrp_lang_other,
       FileName: row.mrp_att_file,
       FileNameServer: row.mrp_att_fileserver,
+      //step4
+      Flg_Complte: row.mrp_complete_flg,
+      Hr_EmpId: row.mrp_new_empid,
+      Hr_EmpName: row.mrp_new_name,
+      Hr_EmpSername: row.mrp_new_sname,
+      Hr_JoinDate: row.join_date,
     }));
+    console.log(jsonData.join_date, "jsonData");
     res.status(200).json(jsonData);
     await DisconnectPG_DB(client);
   } catch (error) {
@@ -1049,6 +1063,235 @@ module.exports.DelDataPersonDetail = async function (req, res) {
     console.log(query);
     const result = await client.query(query);
     console.log(result.rows, "DelDataPersonDetail>>>>");
+    res.status(200).json(result.rows);
+    await DisconnectPG_DB(client);
+  } catch (error) {
+    writeLogError(error.message, query);
+    res.status(500).json({ message: error.message });
+    console.log(error);
+  }
+};
+
+module.exports.GetEmail = async function (req, res) {
+  var query = "";
+  try {
+    const client = await ConnectPG_DB();
+    const { user } = req.body;
+    query = ` select distinct
+                hdpm_user_login,
+                hdpm_email
+              from
+                "HR".hrdw_person_master
+              where
+                hdpm_user_login ='${user}'`;
+    console.log(query);
+    const result = await client.query(query);
+    console.log(result.rows, "GetEmail>>>>");
+    const jsonData = result.rows.map((row) => ({
+      User: row.hdpm_user_login,
+      Email: row.hdpm_email,
+    }));
+    res.status(200).json(jsonData);
+    await DisconnectPG_DB(client);
+  } catch (error) {
+    writeLogError(error.message, query);
+    res.status(500).json({ message: error.message });
+    console.log(error);
+  }
+};
+
+module.exports.UpdateApprove = async function (req, res) {
+  var query = "";
+  try {
+    const client = await ConnectPG_DB();
+    const {
+      DeptFlg,
+      DeptComment,
+      FMGMFlg,
+      FMGMComment,
+      HrFlg,
+      HrComment,
+      status,
+      ReqNo,
+      statusNext,
+      UpdateBy,
+    } = req.body;
+    console.log(req.body, "UpdateApprove");
+    query = `update  "HR".HRDWMR_HEADER set
+ 			        mrh_dept_date = case
+                when '${status}' = 'MR0102' then current_timestamp
+                else mrh_dept_date
+              end,
+              mrh_dept_flg = '${DeptFlg}',
+              mrh_dept_comment = '${DeptComment}',
+              mrh_fm_date = case
+                when '${status}' = 'MR0103' then current_timestamp
+                else mrh_fm_date
+              end,
+              mrh_fm_flg = '${FMGMFlg}',
+              mrh_fm_comment = '${FMGMComment}',
+              mrh_hrm_date = case
+                when '${status}' = 'MR0104' then current_timestamp
+                else mrh_hrm_date
+              end,
+              mrh_hrm_flg = '${HrFlg}',
+              mrh_hrm_comment = '${HrComment}',
+              mrh_update_date=current_timestamp,
+              mrh_update_by='${UpdateBy}',
+              mrh_req_status='${statusNext}'
+              where mrh_req_no ='${ReqNo}'
+              `;
+    console.log(query);
+    const result = await client.query(query);
+    console.log(result.rows, "GetEmail>>>>");
+    res.status(200).json(result.rows);
+    await DisconnectPG_DB(client);
+  } catch (error) {
+    writeLogError(error.message, query);
+    res.status(500).json({ message: error.message });
+    console.log(error);
+  }
+};
+
+module.exports.UpdateReject = async function (req, res) {
+  var query = "";
+  try {
+    const client = await ConnectPG_DB();
+    const { ReqNo, statusNext, UpdateBy } = req.body;
+
+    query = `update "HR".HRDWMR_HEADER set
+ 			        mrh_dept_date = null,
+              mrh_dept_flg = '',
+              mrh_dept_comment = '',
+
+              mrh_fm_date = null,
+              mrh_fm_flg = '',
+              mrh_fm_comment = '',
+
+              mrh_hrm_date = null,
+              mrh_hrm_flg = '',
+              mrh_hrm_comment = '',
+
+              mrh_update_date=current_timestamp,
+              mrh_update_by='${UpdateBy}',
+              mrh_req_status='${statusNext}'
+              where mrh_req_no ='${ReqNo}' `;
+
+    console.log(query);
+    const result = await client.query(query);
+    console.log(result.rows, "GetEmail>>>>");
+    res.status(200).json(result.rows);
+    await DisconnectPG_DB(client);
+  } catch (error) {
+    writeLogError(error.message, query);
+    res.status(500).json({ message: error.message });
+    console.log(error);
+  }
+};
+
+module.exports.GetConditionForClose = async function (req, res) {
+  var query = "";
+  try {
+    const client = await ConnectPG_DB();
+    // const { Fac_code, Sl_Department } = req.body;
+    query = `select hdcm_code,hdcm_desc 
+            from "HR".hrdw_code_master hcm 
+            where hdcm_group='MR08'	`;
+    const result = await client.query(query);
+    console.log(result.rows);
+    const jsonData = result.rows.map((row) => ({
+      value: row.hdcm_code,
+      label: row.hdcm_desc,
+    }));
+    res.status(200).json(jsonData);
+    await DisconnectPG_DB(client);
+  } catch (error) {
+    writeLogError(error.message, query);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+module.exports.SaveDarftHr = async function (req, res) {
+  var query = "";
+  try {
+    const client = await ConnectPG_DB();
+    const {
+      ReqNo,
+      UpdateBy,
+      Radio_Status,
+      Sl_Condition,
+      txt_Comment,
+      Cb_AttFile,
+      FileName,
+      FileNameServer,
+      txt_TotalComplete
+      ,Req_Status
+    } = req.body;
+    console.log(req.body, "SaveDarftHr");
+    query = `update  "HR".HRDWMR_HEADER set 
+                mrh_hrs_status='${Req_Status}',
+                mrh_hrs_condition='${Sl_Condition}',
+                mrh_hrs_lastby='${UpdateBy}',
+                mrh_hrs_by='${UpdateBy}',
+                mrh_hrs_date=current_timestamp,
+                mrh_hrs_lastdate=current_timestamp,
+                mrh_hrs_submit=current_timestamp,
+                mrh_hrs_comment='${txt_Comment}',
+                mrh_req_status='${Radio_Status}',
+                mrh_hrs_attach='${Cb_AttFile}',
+                mrh_hrs_completed =${txt_TotalComplete},
+                mrh_hrs_file='${FileName}',
+                mrh_hrs_fileserver='${FileNameServer}',
+                mrh_update_by='${UpdateBy}',
+                mrh_update_date=current_timestamp
+              where mrh_req_no ='${ReqNo}'`;
+    console.log(query);
+    const result = await client.query(query);
+    console.log(result.rows);
+
+    res.status(200).json(result.rows);
+    await DisconnectPG_DB(client);
+  } catch (error) {
+    writeLogError(error.message, query);
+    res.status(500).json({ message: error.message });
+    console.log(error, "error")
+  }
+};
+
+module.exports.UpdateUserJoin = async function (req, res) {
+  var query = "";
+  try {
+    const client = await ConnectPG_DB();
+    const {
+      FlgComplete,
+      EmpID,
+      EmpName,
+      EmpSurName,
+      EmpJoinDate,
+      UpdateBy,
+      ReqNo,
+      RecId,
+    } = req.body;
+
+    query = `update  "HR".HRDWMR_PERSON set
+              mrp_complete_flg='${FlgComplete}',
+              mrp_new_empid='${EmpID}',
+              mrp_new_name='${EmpName}',
+              mrp_new_sname='${EmpSurName}',
+              --mrp_join_date=TO_DATE('${EmpJoinDate}'||null, 'YYYY-MM-DD'),
+              mrp_join_date = CASE 
+                WHEN '${EmpJoinDate}' IS NULL OR '${EmpJoinDate}' = 'null' THEN NULL
+                ELSE TO_DATE('${EmpJoinDate}', 'DD/MM/YYYY')
+                end ,
+              mrp_update_date=current_timestamp,
+              mrp_update_by='${UpdateBy}'
+            where 1=1
+            and mrp_hreq_no='${ReqNo}'
+            and mrp_record_id ='${RecId}'`;
+
+    console.log(query);
+    const result = await client.query(query);
+    console.log(result.rows, "UpdateUserJoin>>>>");
     res.status(200).json(result.rows);
     await DisconnectPG_DB(client);
   } catch (error) {

@@ -31,4 +31,12 @@ router.post("/GetDataDetailStep1", ManPowerRequest.GetDataDetailStep1);
 router.post("/GetDataPerson", ManPowerRequest.GetDataPerson);
 router.post("/GetDataPersonDetail", ManPowerRequest.GetDataPersonDetail);
 router.post("/DelDataPersonDetail", ManPowerRequest.DelDataPersonDetail);
+router.post("/GetEmail", ManPowerRequest.GetEmail);
+router.post("/UpdateApprove", ManPowerRequest.UpdateApprove);
+router.post("/UpdateReject", ManPowerRequest.UpdateReject);
+router.post("/GetConditionForClose", ManPowerRequest.GetConditionForClose);
+router.post("/SaveDarftHr", ManPowerRequest.SaveDarftHr);
+router.post("/UpdateUserJoin", ManPowerRequest.UpdateUserJoin);
+
+
 module.exports = router;
