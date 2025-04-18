@@ -95,6 +95,7 @@ module.exports.Login = async function (req, res) {
     res.status(500).json({ message: error.message });
   }
 };
+
 module.exports.GetDataUser = async function (req, res) {
   var query = "";
   try {
@@ -127,6 +128,8 @@ module.exports.GetDataUser = async function (req, res) {
   }
 };
 
+
+
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, "D:/Project React/Hr-System_UI/src/FileUpload"); //เปลี่ยนPath
@@ -135,6 +138,10 @@ const storage = multer.diskStorage({
     cb(null, file.originalname);
   },
 });
+
+
+
+
 
 // สร้าง middleware สำหรับอัปโหลด
 const upload = multer({

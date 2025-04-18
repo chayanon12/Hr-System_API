@@ -37,6 +37,8 @@ router.post("/UpdateReject", ManPowerRequest.UpdateReject);
 router.post("/GetConditionForClose", ManPowerRequest.GetConditionForClose);
 router.post("/SaveDarftHr", ManPowerRequest.SaveDarftHr);
 router.post("/UpdateUserJoin", ManPowerRequest.UpdateUserJoin);
+router.post("/GetHrStarff", ManPowerRequest.GetHrStarff);
+router.post("/GetStatusSearch", ManPowerRequest.GetStatusSearch);
 
 
 module.exports = router;
