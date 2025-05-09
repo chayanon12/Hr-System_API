@@ -16,12 +16,58 @@ module.exports.GetFactory = async function (req, res) {
     // console.log(User_login,'GetFactory');
     query = `select distinct f.factory_name as REQ_FACTORY,pmm.hdpm_factory from "HR".hrdw_person_master pmm ,"CUSR".cu_factory_m f																																																
               where pmm.hdpm_factory = f.factory_code and pmm.hdpm_for = 'MAN POWER'																																																
-              and pmm.hdpm_level = 'ISSUE' and pmm.hdpm_person_sts = 'A' and pmm.hdpm_user_login = '${User_login}'`;
+              and pmm.hdpm_person_sts = 'A' and pmm.hdpm_user_login = '${User_login}'`;
     const result = await client.query(query);
     console.log(result.rows, "GetFactory");
     const jsonData = result.rows.map((row) => ({
       value: row.hdpm_factory,
       label: row.req_factory,
+    }));
+    console.log(jsonData, "GetFactory");
+    res.status(200).json(jsonData);
+    await DisconnectPG_DB(client);
+  } catch (error) {
+    writeLogError(error.message, query);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+module.exports.GetFactoryIssue = async function (req, res) {
+  var query = "";
+  try {
+    const client = await ConnectPG_DB();
+    const { User_login } = req.body;
+    // console.log(User_login,'GetFactory');
+    query = `select distinct f.factory_name as REQ_FACTORY,pmm.hdpm_factory from "HR".hrdw_person_master pmm ,"CUSR".cu_factory_m f																																																
+              where pmm.hdpm_factory = f.factory_code and pmm.hdpm_for = 'MAN POWER'																																																
+              and pmm.hdpm_level = 'ISSUE' and pmm.hdpm_person_sts = 'A' and pmm.hdpm_user_login = '${User_login}'`;
+    const result = await client.query(query);
+    console.log(result.rows, "GetFactory",query);
+    const jsonData = result.rows.map((row) => ({
+      value: row.hdpm_factory,
+      label: row.req_factory,
+    }));
+    console.log(jsonData, "GetFactory");
+    res.status(200).json(jsonData);
+    await DisconnectPG_DB(client);
+  } catch (error) {
+    writeLogError(error.message, query);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+module.exports.GetFactoryMasterlist = async function (req, res) {
+  var query = "";
+  try {
+    const client = await ConnectPG_DB();
+    const { User_login } = req.body;
+    // console.log(User_login,'GetFactory');
+    query = `select factory_code,factory_name from  "CUSR".cu_factory_m`;
+    const result = await client.query(query);
+    console.log(result.rows, "GetFactory",query);
+    const jsonData = result.rows.map((row) => ({
+      value: row.factory_code,
+      label: row.factory_name,
     }));
     console.log(jsonData, "GetFactory");
     res.status(200).json(jsonData);
@@ -56,6 +102,32 @@ module.exports.GetPosition = async function (req, res) {
 };
 
 module.exports.GetDepartment = async function (req, res) {
+  var query = "";
+  try {
+    const client = await ConnectPG_DB();
+    const { User_login } = req.body;
+    query = `select distinct pmm.hdm_dept 
+              from "HR".hrdw_person_master pmm 
+              where pmm.hdpm_for = 'MAN POWER' 
+              and pmm.hdpm_person_sts  = 'A' 
+              and pmm.hdm_dept <> 'ALL'
+              and pmm.hdpm_user_login =  '${User_login}'
+              order by pmm.hdm_dept`;
+    const result = await client.query(query);
+    console.log(result.rows, "GetDepartment");
+    const jsonData = result.rows.map((row) => ({
+      value: row.hdm_dept,
+      label: row.hdm_dept,
+    }));
+    res.status(200).json(jsonData);
+    await DisconnectPG_DB(client);
+  } catch (error) {
+    writeLogError(error.message, query);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+module.exports.GetDepartmentIssue = async function (req, res) {
   var query = "";
   try {
     const client = await ConnectPG_DB();
@@ -628,7 +700,7 @@ module.exports.SaveDraft = async function (req, res) {
               mrh_subs_amount = ${Total_Sub},
               mrh_subs_attach = '${CB_SubAttach}',
               mrh_subs_file = '${Sub_Filename}',
-              mrh_subs_fileserver = '${Sub_FilenameServer}',
+              -- mrh_subs_fileserver = '${Sub_FilenameServer}',
               --add
               mrh_add_flg = '${Cb_Add}',
               mrh_add_target1 = '${Add_Target1}',
@@ -636,7 +708,7 @@ module.exports.SaveDraft = async function (req, res) {
               mrh_add_amount = ${Total_Add},
               mrh_add_attach = '${CB_AddAttach}',
               mrh_add_file = '${Add_Filename}',
-              mrh_add_fileserver = '${Add_FilenameServer}',
+              --mrh_add_fileserver = '${Add_FilenameServer}',
               --step3
               mrh_dept_by = '${DeptBy}',
               mrh_fm_by = '${FMGMBy}',
@@ -705,7 +777,6 @@ module.exports.InsPerson = async function (req, res) {
                     mrp_lang_skill = '${Lang_skill}',
                     mrp_lang_other = '${Lang_other}',
                     mrp_att_file = '${Filename}',
-                    mrp_att_fileserver = '${FilenameServer}',
                     mrp_update_date = current_timestamp,
                     mrp_update_by = '${Create_by}'
             WHEN NOT MATCHED THEN
@@ -724,7 +795,6 @@ module.exports.InsPerson = async function (req, res) {
                     mrp_lang_skill,
                     mrp_lang_other,
                     mrp_att_file,
-                    mrp_att_fileserver,
                     mrp_create_date,
                     mrp_create_by
                 ) VALUES (
@@ -742,7 +812,6 @@ module.exports.InsPerson = async function (req, res) {
                     '${Lang_skill}',
                     '${Lang_other}',
                     '${Filename}',
-                    '${FilenameServer}',
                     current_timestamp,
                     '${Create_by}'
                 )`;
@@ -912,6 +981,103 @@ module.exports.SearchManPower = async function (req, res) {
   }
 };
 
+module.exports.SearchManPowerApprove = async function (req, res) {
+  var query = "";
+  try {
+    const client = await ConnectPG_DB();
+    const {
+      Factory,
+      Department,
+      Position,
+      ReqNoFrom,
+      ReqNoTo,
+      DateFrom,
+      DateTo,
+      ReqBy,
+      JobGrade,
+      Status,
+      UserApprove
+    } = req.body;
+    const formattedStatus = Status && Status.length > 0
+  ? `(${Status.map((s) => `'${s}'`).join(', ')})`
+  :[];
+    const formattedFactory = Factory && Factory.length > 0
+    ? `(${Factory.map((s) => `'${s}'`).join(', ')})`
+    :[];
+    console.log(formattedFactory, "formattedFactory");
+    query = `
+    SELECT
+        M.factory_name AS FAC,
+        H.mrh_req_dept AS DEPT,
+        H.mrh_req_no AS REQ_NO,
+        H.mrh_req_position AS POSITION,
+        (SELECT STRING_AGG(DISTINCT mrpd_value, ', ' ORDER BY mrpd_value)
+          FROM "HR".hrdwmr_person_det
+            WHERE mrpd_category = 'JOB GRADE' AND mrpd_hreq_no = H.mrh_req_no) AS JOB_GARDE,
+        H.mrh_create_by AS CREATE_BY,
+        TO_CHAR(H.mrh_create_date, 'DD/MM/YY') AS CREATE_DATE,
+        C.hdcm_desc AS STATUS,
+        H.mrh_update_by AS LAST_BY,
+        TO_CHAR(H.mrh_update_date, 'DD/MM/YY') AS LAST_DATE,
+        H.mrh_req_status AS STATUS_VALUE
+    FROM "HR".HRDWMR_HEADER H
+    JOIN "CUSR".cu_factory_m M ON H.mrh_factory = M.factory_code
+    JOIN "HR".hrdw_code_master C ON H.mrh_req_status = C.hdcm_code
+    JOIN "HR".hrdwmr_person_det D ON H.mrh_req_no = D.mrpd_hreq_no
+    WHERE 1=1
+        AND (${formattedFactory} IS NULL OR H.mrh_factory in ${formattedFactory})
+        --AND (${Factory} IS NULL OR H.mrh_factory = '${Factory}')
+        AND (${Department} IS NULL OR H.mrh_req_dept = ANY (${Department}))
+        AND (${Position} IS NULL OR H.mrh_req_position = ANY (${Position})) 
+        AND (${JobGrade} IS NULL OR D.mrpd_value = ANY (${JobGrade}))
+        AND ('${ReqNoFrom}' = '' OR H.mrh_req_no >= '${ReqNoFrom}')
+        AND ('${ReqNoTo}' = '' OR H.mrh_req_no <= '${ReqNoTo}')
+        AND (TO_CHAR(H.mrh_req_date, 'YYYY-MM-DD') >= '${DateFrom}' OR '${DateFrom}' = '')
+        AND (TO_CHAR(H.mrh_req_date, 'YYYY-MM-DD') <= '${DateTo}' OR  '${DateTo}' = '')
+        AND ('${ReqBy}' = '' OR H.mrh_req_by = '${ReqBy}')
+        AND (${formattedStatus} IS NULL OR C.hdcm_code in ${formattedStatus})
+        AND(H.mrh_dept_by = '${UserApprove}' AND H.mrh_req_status IN ('MR0102'))
+        or(H.mrh_fm_by = '${UserApprove}' AND H.mrh_req_status IN ('MR0103'))
+        or(H.mrh_hrm_by= '${UserApprove}' AND H.mrh_req_status IN ('MR0104'))
+     GROUP BY 
+          H.mrh_req_no,
+          M.factory_name,
+          H.mrh_req_dept,
+          H.mrh_req_position,
+          H.mrh_create_by,
+          H.mrh_create_date,
+          C.hdcm_desc,
+          H.mrh_update_by,
+          H.mrh_update_date,
+          H.mrh_req_status
+    ORDER BY H.mrh_req_no desc`;
+    
+
+    console.log(query);
+    const result = await client.query(query);
+    console.log(result.rows, "SearchManPower");
+    const jsonData = result.rows.map((row) => ({
+      Factory: row.fac,
+      Department: row.dept,
+      ReqNo: row.req_no,
+      Position: row.position,
+      Job_Grade: row.job_garde,
+      CreateBy: row.create_by,
+      CreateDate: row.create_date,
+      Status: row.status,
+      LastBy: row.last_by,
+      Lastdate: row.last_date,
+      Status_value: row.status_value,
+    }));
+    res.status(200).json(jsonData);
+    await DisconnectPG_DB(client);
+  } catch (error) {
+    writeLogError(error.message, query);
+    res.status(500).json({ message: error.message });
+    console.log(error);
+  }
+};
+
 module.exports.GetDataEdit = async function (req, res) {
   var query = "";
   try {
@@ -924,9 +1090,11 @@ module.exports.GetDataEdit = async function (req, res) {
           C.hdcm_cmmt1 as StatusType,
           TO_CHAR(H.mrh_req_date,'DD/MM/YYYY') as REQ_DATE, 
           TO_CHAR(H.mrh_target_date,'DD/MM/YYYY') as TARGET_DATE,
+          TO_CHAR(H.mrh_send_date,'DD/MM/YYYY') as SendDate,
           TO_CHAR(H.mrh_dept_date, 'DD/MM/YYYY HH24:MI:SS') AS dept_date,
           TO_CHAR(H.mrh_fm_date, 'DD/MM/YYYY HH24:MI:SS') AS fm_date,
           TO_CHAR(H.mrh_hrm_date, 'DD/MM/YYYY HH24:MI:SS') AS hr_date,
+          TO_CHAR(H.mrh_hrs_lastdate, 'DD/MM/YYYY') AS hr_lastdate,
           M.factory_name as FAC_DESC
         FROM "HR".HRDWMR_HEADER H
         INNER JOIN "CUSR".cu_factory_m M ON H.mrh_factory = M.factory_code
@@ -935,7 +1103,7 @@ module.exports.GetDataEdit = async function (req, res) {
         and H.mrh_req_no ='${ReqNo}'`;
     console.log(query);
     const result = await client.query(query);
-    console.log(result.rows, "GetDataEdit>>>>");
+
     const jsonData = result.rows.map((row) => ({
       //Step1
       Fac_Desc: row.fac_desc,
@@ -953,6 +1121,7 @@ module.exports.GetDataEdit = async function (req, res) {
       Target_date: row.target_date,
       Req_Total: row.mrh_total_amount,
       Remark: row.mrh_req_remark,
+      SendDate: row.senddate,
       //Step2
       Cb_Sub: row.mrh_subs_flg,
       Sub_Total: Number(row.mrh_subs_amount),
@@ -983,6 +1152,8 @@ module.exports.GetDataEdit = async function (req, res) {
       Hr_Radio: row.mrh_hrm_flg,
       Hr_Comment: row.mrh_hrm_comment,
       //Step4 Waiting
+      HR_lastDate: row.hr_lastdate,
+      Hr_lastBy: row.mrh_hrs_lastby,
       HrStaff_Status: row.mrh_hrs_status,
       HrStaff_Condition: row.mrh_hrs_condition,
       HrStaff_Complete: row.mrh_hrs_completed,
@@ -1290,7 +1461,6 @@ module.exports.SaveDarftHr = async function (req, res) {
                 mrh_hrs_attach='${Cb_AttFile}',
                 mrh_hrs_completed =${txt_TotalComplete},
                 mrh_hrs_file='${FileName}',
-                mrh_hrs_fileserver='${FileNameServer}',
                 mrh_update_by='${UpdateByLast}',
                 mrh_update_date=current_timestamp
               where mrh_req_no ='${ReqNo}'`;
@@ -1372,4 +1542,90 @@ module.exports.GetHrStarff = async function (req, res) {
   }
 };
 
+module.exports.UploadSub = async function (req, res) {
+  let query = "";
+  try {
+    const client = await ConnectPG_DB();
+    const { fileData, ReqNo } = req.body;
+    console.log(fileData,'HA')
+    const buffer = Buffer.from(fileData, 'base64'); 
+    query = `
+      UPDATE "HR".HRDWMR_HEADER SET 
+      mrh_subs_fileserver = $1
+      WHERE mrh_req_no = $2`;
+    const result = await client.query(query, [buffer, ReqNo]);
+    console.log('HAHAHAHA :', result);
+    res.status(200).send({
+      message: 'File uploaded successfully',
+    });
+    await DisconnectPG_DB(client);
+  } catch (error) {
+    writeLogError(error.message, query);
+    res.status(500).json({ message: error.message });
+    console.log(error.message,'UploadFileDetail');
+  }
+};
+
+module.exports.HomeStatusCountManPower = async function (req, res) {
+  let query = "";
+  try {
+    const client = await ConnectPG_DB();
+    const { UserLogin, Roll } = req.body;
+    query = `
+      SELECT COUNT(*) AS total, 'Create' AS status
+      FROM "HR".HRDWMR_HEADER
+      WHERE mrh_req_status = 'MR0101'
+        AND mrh_req_by = '${UserLogin}'
+
+      UNION ALL
+
+      SELECT COUNT(*) AS total, 'WaitDeptApprove' AS status
+      FROM "HR".HRDWMR_HEADER
+      WHERE mrh_req_status = 'MR0102'
+        AND mrh_dept_by = '${UserLogin}'
+
+      UNION ALL
+
+      SELECT COUNT(*) AS total, 'WaitFMGMApprove' AS status
+      FROM "HR".HRDWMR_HEADER
+      WHERE mrh_req_status = 'MR0103'
+        AND mrh_fm_by = '${UserLogin}'
+
+      UNION ALL
+
+      SELECT COUNT(*) AS total, 'WaitHRManagerApprove' AS status
+      FROM "HR".HRDWMR_HEADER
+      WHERE mrh_req_status = 'MR0104'
+        AND mrh_hrm_by = '${UserLogin}'
+
+      UNION ALL
+
+      SELECT 
+          CASE 
+              WHEN '244' = ${Roll} THEN
+                  (SELECT COUNT(*) 
+                  FROM "HR".HRDWMR_HEADER
+                  WHERE mrh_req_status IN ('MR0105', 'MR0106'))
+              ELSE 0
+          END AS total,
+          'WaitHRStaff' AS status`;
+console.log(query, "HomeStatusCountManPower");
+    const result = await client.query(query);
+
+    const separatedData = result.rows.map(row => ({ [row.status]: row.total }));
+
+    // คำนวณ total รวมของทุก object
+    const totalSum = result.rows.reduce((sum, row) => sum + parseInt(row.total, 10), 0);
+    
+    // เพิ่ม total รวมเข้าไปใน array
+    separatedData.push({ Total: totalSum });
+    
+    res.status(200).json(separatedData);
+    await DisconnectPG_DB(client);
+  } catch (error) {
+    writeLogError(error.message, query);
+    res.status(500).json({ message: error.message });
+    console.log(error.message,'UploadFileDetail');
+  }
+};
 

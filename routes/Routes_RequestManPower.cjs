@@ -3,7 +3,10 @@ const router = express.Router();
 const ManPowerRequest = require("../WorkService/Model_RequestManPower.cjs");
 
 router.post("/GetFactory", ManPowerRequest.GetFactory);
+router.post("/GetFactoryIssue", ManPowerRequest.GetFactoryIssue);
+router.post("/GetFactoryMasterlist", ManPowerRequest.GetFactoryMasterlist);
 router.post("/GetDepartment", ManPowerRequest.GetDepartment);
+router.post("/GetDepartmentIssue", ManPowerRequest.GetDepartmentIssue);
 router.post("/GetPosition", ManPowerRequest.GetPosition);
 router.post("/GetJobGrade", ManPowerRequest.GetJobGrade);
 router.post("/GetEmployeeType", ManPowerRequest.GetEmployeeType);
@@ -39,6 +42,8 @@ router.post("/SaveDarftHr", ManPowerRequest.SaveDarftHr);
 router.post("/UpdateUserJoin", ManPowerRequest.UpdateUserJoin);
 router.post("/GetHrStarff", ManPowerRequest.GetHrStarff);
 router.post("/GetStatusSearch", ManPowerRequest.GetStatusSearch);
-
+router.post("/SearchManPowerApprove", ManPowerRequest.SearchManPowerApprove);
+router.post("/UploadSub", ManPowerRequest.UploadSub);
+router.post("/HomeStatusCountManPower", ManPowerRequest.HomeStatusCountManPower);
 
 module.exports = router;
