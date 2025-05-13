@@ -45,5 +45,6 @@ router.post("/GetStatusSearch", ManPowerRequest.GetStatusSearch);
 router.post("/SearchManPowerApprove", ManPowerRequest.SearchManPowerApprove);
 router.post("/UploadSub", ManPowerRequest.UploadSub);
 router.post("/HomeStatusCountManPower", ManPowerRequest.HomeStatusCountManPower);
+router.post("/UploadHr", ManPowerRequest.UploadHr);
 
 module.exports = router;

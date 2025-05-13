@@ -127,6 +127,32 @@ module.exports.GetDepartment = async function (req, res) {
   }
 };
 
+module.exports.GetDepartmentMasterList = async function (req, res) {
+  var query = "";
+  try {
+    const client = await ConnectPG_DB();
+    const { User_login } = req.body;
+    query = `select distinct pmm.hdm_dept 
+              from "HR".hrdw_person_master pmm 
+              where pmm.hdpm_for = 'MAN POWER' 
+              and pmm.hdpm_person_sts  = 'A' 
+              and pmm.hdm_dept <> 'ALL'
+              --and pmm.hdpm_user_login =  '${User_login}'
+              order by pmm.hdm_dept`;
+    const result = await client.query(query);
+    console.log(result.rows, "GetDepartment");
+    const jsonData = result.rows.map((row) => ({
+      value: row.hdm_dept,
+      label: row.hdm_dept,
+    }));
+    res.status(200).json(jsonData);
+    await DisconnectPG_DB(client);
+  } catch (error) {
+    writeLogError(error.message, query);
+    res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports.GetDepartmentIssue = async function (req, res) {
   var query = "";
   try {
@@ -1566,15 +1592,44 @@ module.exports.UploadSub = async function (req, res) {
   }
 };
 
+module.exports.UploadHr = async function (req, res) {
+  let query = "";
+  try {
+    const client = await ConnectPG_DB();
+    const { fileData, ReqNo } = req.body;
+    console.log(fileData,'HA')
+    const buffer = Buffer.from(fileData, 'base64'); 
+    query = `
+      UPDATE "HR".HRDWMR_HEADER SET 
+      mrh_hrs_fileserver = $1
+      WHERE mrh_req_no = $2`;
+    const result = await client.query(query, [buffer, ReqNo]);
+    console.log('HAHAHAHA :', result);
+    res.status(200).send({
+      message: 'File uploaded successfully',
+    });
+    await DisconnectPG_DB(client);
+  } catch (error) {
+    writeLogError(error.message, query);
+    res.status(500).json({ message: error.message });
+    console.log(error.message,'UploadFileDetail');
+  }
+};
+
 module.exports.HomeStatusCountManPower = async function (req, res) {
   let query = "";
   try {
     const client = await ConnectPG_DB();
     const { UserLogin, Roll } = req.body;
+    console.log(Roll, "formattedRoll");
+    const formattedRoll = Roll && Roll.length > 0
+    ? `(${Roll.join(', ')})`
+    : [];
+    console.log(formattedRoll, "formattedRoll2");
     query = `
       SELECT COUNT(*) AS total, 'Create' AS status
       FROM "HR".HRDWMR_HEADER
-      WHERE mrh_req_status = 'MR0101'
+      WHERE mrh_req_status IN ('MR0101', 'MR0129', 'MR0139', 'MR0149')
         AND mrh_req_by = '${UserLogin}'
 
       UNION ALL
@@ -1602,7 +1657,7 @@ module.exports.HomeStatusCountManPower = async function (req, res) {
 
       SELECT 
           CASE 
-              WHEN '244' = ${Roll} THEN
+              WHEN '244' in ${formattedRoll} THEN
                   (SELECT COUNT(*) 
                   FROM "HR".HRDWMR_HEADER
                   WHERE mrh_req_status IN ('MR0105', 'MR0106'))
