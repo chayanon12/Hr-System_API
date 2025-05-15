@@ -131,16 +131,16 @@ module.exports.GetDepartmentMasterList = async function (req, res) {
   var query = "";
   try {
     const client = await ConnectPG_DB();
-    const { User_login } = req.body;
+    const { Fac } = req.body;
     query = `select distinct pmm.hdm_dept 
               from "HR".hrdw_person_master pmm 
               where pmm.hdpm_for = 'MAN POWER' 
               and pmm.hdpm_person_sts  = 'A' 
               and pmm.hdm_dept <> 'ALL'
-              --and pmm.hdpm_user_login =  '${User_login}'
+              and pmm.hdpm_factory='${Fac}'
               order by pmm.hdm_dept`;
     const result = await client.query(query);
-    console.log(result.rows, "GetDepartment");
+    console.log(result.rows, "GetDepartment",query);
     const jsonData = result.rows.map((row) => ({
       value: row.hdm_dept,
       label: row.hdm_dept,
@@ -391,7 +391,8 @@ module.exports.GetDataPersonByIDCode = async function (req, res) {
     const { Id_Code } = req.body;
     query = `select h.ename||' '||h.esurname as EMP_NAME,h.pos_grade as JOB_GRADE,h.cost_center 
               from cusr.cu_user_humantrix h 
-              where h.status = 'Active' 
+              where 1=1
+              -- h.status = 'Active' 
               and h.empcode = '${Id_Code}'`;
     const result = await Conn.execute(query);
     const jsonData = result.rows.map((row) => ({
@@ -709,6 +710,7 @@ module.exports.SaveDraft = async function (req, res) {
       HRMBy,
       UpdateBy,
       Status,
+      Position
     } = req.body;
     console.log(req.body, "SaveDraft");
     query = `
@@ -717,6 +719,7 @@ module.exports.SaveDraft = async function (req, res) {
               mrh_req_status = '${Status}',
               mrh_req_email = '${Email}',
               mrh_req_tel = '${Tel}',
+              mrh_req_position = '${Position}',
               mrh_target_date = TO_DATE('${DateTarget}',  'YYYY-MM-DD'),
               mrh_total_amount = ${TotalReq},
               mrh_req_remark = '${Remark}',
