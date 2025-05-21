@@ -1113,23 +1113,22 @@ module.exports.GetDataEdit = async function (req, res) {
     const client = await ConnectPG_DB();
     const { ReqNo } = req.body;
     console.log(ReqNo, "GetDataEdit");
-    query = `
-        select H.*,
-          C.hdcm_desc as STS_DESC,
-          C.hdcm_cmmt1 as StatusType,
-          TO_CHAR(H.mrh_req_date,'DD/MM/YYYY') as REQ_DATE, 
-          TO_CHAR(H.mrh_target_date,'DD/MM/YYYY') as TARGET_DATE,
-          TO_CHAR(H.mrh_send_date,'DD/MM/YYYY') as SendDate,
-          TO_CHAR(H.mrh_dept_date, 'DD/MM/YYYY HH24:MI:SS') AS dept_date,
-          TO_CHAR(H.mrh_fm_date, 'DD/MM/YYYY HH24:MI:SS') AS fm_date,
-          TO_CHAR(H.mrh_hrm_date, 'DD/MM/YYYY HH24:MI:SS') AS hr_date,
-          TO_CHAR(H.mrh_hrs_lastdate, 'DD/MM/YYYY') AS hr_lastdate,
-          M.factory_name as FAC_DESC
-        FROM "HR".HRDWMR_HEADER H
-        INNER JOIN "CUSR".cu_factory_m M ON H.mrh_factory = M.factory_code
-        INNER JOIN "HR".hrdw_code_master C ON H.mrh_req_status = C.hdcm_code
-        WHERE 1=1
-        and H.mrh_req_no ='${ReqNo}'`;
+    query = `select H.*,
+                C.hdcm_desc as STS_DESC,
+                C.hdcm_cmmt1 as StatusType,
+                TO_CHAR(H.mrh_req_date,'DD/MM/YYYY') as REQ_DATE, 
+                TO_CHAR(H.mrh_target_date,'DD/MM/YYYY') as TARGET_DATE,
+                TO_CHAR(H.mrh_send_date,'DD/MM/YYYY') as SendDate,
+                TO_CHAR(H.mrh_dept_date, 'DD/MM/YYYY HH24:MI:SS') AS dept_date,
+                TO_CHAR(H.mrh_fm_date, 'DD/MM/YYYY HH24:MI:SS') AS fm_date,
+                TO_CHAR(H.mrh_hrm_date, 'DD/MM/YYYY HH24:MI:SS') AS hr_date,
+                TO_CHAR(H.mrh_hrs_lastdate, 'DD/MM/YYYY') AS hr_lastdate,
+                M.factory_name as FAC_DESC
+              FROM "HR".HRDWMR_HEADER H
+              INNER JOIN "CUSR".cu_factory_m M ON H.mrh_factory = M.factory_code
+              INNER JOIN "HR".hrdw_code_master C ON H.mrh_req_status = C.hdcm_code
+              WHERE 1=1
+              and H.mrh_req_no ='${ReqNo}'`;
     console.log(query);
     const result = await client.query(query);
 
