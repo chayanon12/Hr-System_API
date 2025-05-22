@@ -12,5 +12,11 @@ router.post("/GetLetterType", Letter.GetLetterType);
 router.post("/UpdateSvApprove", Letter.UpdateSvApprove);
 router.post("/GetConditionClose", Letter.GetConditionClose);
 router.post("/UpdateHrStaff", Letter.UpdateHrStaff);
-
+router.post("/GetDepartmentApprove", Letter.GetDepartmentApprove);
+router.post("/GetStatusSearch", Letter.GetStatusSearch);
+router.post("/GetLetterTypeSearch", Letter.GetLetterTypeSearch);
+router.post("/GetDeptallFac", Letter.GetDeptallFac);
+router.post("/SearchLetter", Letter.SearchLetter);
+router.post("/GetFactoryLetter", Letter.GetFactoryLetter);
+router.post("/GetHrStarffLetter", Letter.GetHrStarffLetter);
 module.exports = router;

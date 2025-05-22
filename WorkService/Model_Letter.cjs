@@ -313,7 +313,7 @@ module.exports.GetDataHeaderLetter = async function (req, res) {
       Hr_lastdate: row.last_hr_date,
       Hr_Status: row.lth_hrs_status,
       Hr_Condition: row.lth_hrs_condition,
-      Hr_ConfirmAcDate:row.confirm_date,
+      Hr_ConfirmAcDate: row.confirm_date,
       Hr_comment: row.lth_hrs_comment,
       Hr_ResiveBy: row.lth_receive_by,
       Hr_ResiveDate: row.receive_date,
@@ -413,7 +413,8 @@ module.exports.UpdateHrStaff = async function (req, res) {
       receive_tel,
       lastBy,
       last_date,
-      date_submit
+      date_submit,
+      ReqNo
     } = req.body;
     query = `update
                 "HR".HRDWLT_HEADER
@@ -435,11 +436,264 @@ module.exports.UpdateHrStaff = async function (req, res) {
                 lth_update_date = current_timestamp, 
                 lth_update_by  ='${hr_by}'
               where
-                lth_req_no = 'R-HQ-2505-001'`;
+                lth_req_no = '${ReqNo}'`;
     console.log(query);
     const result = await client.query(query);
 
     res.status(200).json(result.rows);
+    await DisconnectPG_DB(client);
+  } catch (error) {
+    writeLogError(error.message, query);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+module.exports.GetDepartmentApprove = async function (req, res) {
+  var query = "";
+  try {
+    const client = await ConnectPG_DB();
+    const { User_login } = req.body;
+    query = `	select distinct pmm.hdm_dept 
+              from "HR".hrdw_person_master pmm 
+              where pmm.hdpm_for = 'LETTER' 
+	              and pmm.hdpm_person_sts  = 'A' 
+	              and pmm.hdpm_level='SV'
+	              and pmm.hdm_dept <> 'ALL'
+	              and pmm.hdpm_user_login =  '${User_login}'
+              order by pmm.hdm_dept`;
+    const result = await client.query(query);
+    console.log(result.rows, "GetDepartment");
+    const jsonData = result.rows.map((row) => ({
+      value: row.hdm_dept,
+      label: row.hdm_dept,
+    }));
+    res.status(200).json(jsonData);
+    await DisconnectPG_DB(client);
+  } catch (error) {
+    writeLogError(error.message, query);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+module.exports.GetDeptallFac = async function (req, res) {
+  var query = "";
+  try {
+    const client = await ConnectPG_DB();
+    const { Fac } = req.body;
+    query = `select
+              t.hddm_dept
+            from
+              "HR".hrdw_dept_master t
+            where
+              t.hddm_status = 'A'
+              and t.hddm_factory = '${Fac}'
+            order by
+              t.hddm_sort,
+              t.hddm_dept`;
+    const result = await client.query(query);
+    console.log(result.rows, "GetDepartment");
+    const jsonData = result.rows.map((row) => ({
+      value: row.hddm_dept,
+      label: row.hddm_dept,
+    }));
+    res.status(200).json(jsonData);
+    await DisconnectPG_DB(client);
+  } catch (error) {
+    writeLogError(error.message, query);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+module.exports.GetStatusSearch = async function (req, res) {
+  var query = "";
+  try {
+    const client = await ConnectPG_DB();
+    const { type } = req.body;
+    const formattype = `(${type.map((s) => `'${s}'`).join(", ")})`;
+    query = `select cm.hdcm_code,cm.hdcm_desc																																											
+            from "HR".hrdw_code_master cm																																											
+            where cm.hdcm_group = 'LT01'																																											
+            and cm.hdcm_status  = 'A'
+            and cm.hdcm_cmmt1 in ${formattype}
+            order by cm.hdcm_group,cm.hdcm_sort,cm.hdcm_desc `;
+    console.log(query);
+    const result = await client.query(query);
+    console.log(result.rows);
+    const jsonData = result.rows.map((row) => ({
+      label: row.hdcm_desc,
+      value: row.hdcm_code,
+    }));
+    res.status(200).json(jsonData);
+    await DisconnectPG_DB(client);
+  } catch (error) {
+    writeLogError(error.message, query);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+module.exports.GetLetterTypeSearch = async function (req, res) {
+  var query = "";
+  try {
+    const client = await ConnectPG_DB();
+    query = `select
+              cm.hdcm_code,
+              cm.hdcm_desc
+            from
+              "HR".hrdw_code_master cm
+            where
+              cm.hdcm_group = 'LT02'
+              and cm.hdcm_status = 'A'
+            order by
+              cm.hdcm_group,
+              cm.hdcm_sort,
+              cm.hdcm_desc`;
+    const result = await client.query(query);
+    console.log(result.rows);
+    const jsonData = result.rows.map((row) => ({
+      label: row.hdcm_desc,
+      value: row.hdcm_code,
+    }));
+    res.status(200).json(jsonData);
+    await DisconnectPG_DB(client);
+  } catch (error) {
+    writeLogError(error.message, query);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+module.exports.SearchLetter = async function (req, res) {
+  var query = "";
+  try {
+    const client = await ConnectPG_DB();
+    const {
+      Fac,
+      dept,
+      reqfrom,
+      reqto,
+      datefrom,
+      dateto,
+      reqby,
+      approveby,
+      type,
+      status
+    } = req.body;
+    console.log(req.body,'mmmmmmm')
+    const formattedStatus = status && status.length > 0
+    ? `(${status.map((s) => `'${s}'`).join(', ')})`
+    :[];
+    query = `select
+                f.factory_name as FAC,
+                h.lth_req_dept as dept,
+                h.lth_req_no as req_no,
+            string_agg(cm.hdcm_desc, ' , ' order by cm.hdcm_desc) as letter_types,
+                h.lth_req_by || ' : ' || m.user_fname || ' ' ||  m.user_surname as req_by,
+            to_char(h.lth_req_date,'DD/MM/YY') as req_date,
+                c.hdcm_desc as status,
+                h.lth_update_by as last_by,
+            to_char(h.lth_update_date,'DD/MM/YY') as last_date
+            from "HR".HRDWLT_HEADER H
+            inner join "CUSR".cu_factory_m F  on h.lth_factory = f.factory_code
+            inner join "CUSR".cu_user_m M on h.lth_req_by =  m.user_emp_id
+            inner join "HR".hrdw_code_master C  on h.lth_req_status = c.hdcm_code
+            inner join "HR".HRDWLT_LETTER L on h.lth_req_no = l.ltl_hreq_no
+            inner join "HR".hrdw_code_master cm on l.ltl_letter_type = cm.hdcm_code
+            where 1=1
+            and (h.lth_factory = ${Fac} OR ${Fac} IS null)
+            AND (${dept} IS NULL OR h.lth_req_dept = ANY (${dept}))
+            AND (h.lth_req_no >= ${reqfrom} OR ${reqfrom}  IS NULL)
+            AND (h.lth_req_no <= ${reqto} OR ${reqto}  IS NULL)
+            AND (TO_CHAR(h.lth_req_date , 'YYYY-MM-DD') >= ${datefrom} OR ${datefrom} IS NULL)
+            AND (TO_CHAR(h.lth_req_date , 'YYYY-MM-DD') <= ${dateto} OR ${dateto} IS NULL)
+            and (h.lth_req_by = ${reqby} OR ${reqby} IS null)
+            and (h.lth_sv_by= ${approveby} OR ${approveby} IS null)
+            AND (${type} IS NULL OR l.ltl_letter_type = ANY (${type}))
+            AND (${formattedStatus} IS NULL OR C.hdcm_code in ${formattedStatus})
+            group by
+                f.factory_name,
+                h.lth_req_dept,
+                h.lth_req_no,
+                h.lth_req_by,
+                m.user_fname,
+                m.user_surname,
+                h.lth_req_date,
+                c.hdcm_desc,
+                h.lth_update_by,
+                h.lth_update_date`;
+                console.log(query)
+    const result = await client.query(query);
+    console.log(result.rows);
+    const jsonData = result.rows.map((row) => ({
+      Factory: row.fac,
+      Dept: row.dept,
+      ReqNo: row.req_no,
+      LetterType: row.letter_types,
+      ReqBy: row.req_by,
+      ReqDate: row.req_date,
+      Status: row.status,
+      LastBy: row.last_by,
+      LastDate: row.last_date,
+    }));
+    res.status(200).json(jsonData);
+    await DisconnectPG_DB(client);
+  } catch (error) {
+    writeLogError(error.message, query);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+
+module.exports.GetFactoryLetter = async function (req, res) {
+  var query = "";
+  try {
+    const { Roll,User_login } = req.body;
+    const client = await ConnectPG_DB();
+    console.log(Roll,'nnnn')
+    if(Roll==''){
+      query = `select f.factory_code as fac_code,
+                f.factory_name as fac_desc
+                from "CUSR".CU_USER_M  m
+                inner join "CUSR".cu_factory_m f
+                on m.user_site = f.factory_code
+                where m.USER_LOGIN = '${User_login}'`;
+    }
+    else{
+      query = `select distinct f.factory_name as fac_desc,pmm.hdpm_factory  as fac_code
+               from "HR".hrdw_person_master pmm ,"CUSR".cu_factory_m f																																																
+               where pmm.hdpm_factory = f.factory_code  
+               and pmm.hdpm_person_sts = 'A' 
+               and pmm.hdpm_user_login = '${User_login}'`;
+    }
+ console.log(query,'tttttttttttttt')
+    const result = await client.query(query);
+    console.log(result.rows);
+    const jsonData = result.rows.map((row) => ({
+      label: row.fac_desc,
+      value: row.fac_code,
+    }));
+    res.status(200).json(jsonData);
+    await DisconnectPG_DB(client);
+  } catch (error) {
+    writeLogError(error.message, query);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+module.exports.GetHrStarffLetter = async function (req, res) {
+  var query = "";
+  try {
+    const client = await ConnectPG_DB();
+    const { User } = req.body;
+    query = `select *  from "HR".hrdw_person_master t
+            where t.hdpm_for = 'MAN POWER' and 
+            hdpm_level ='HR STAFF' and 
+            hdpm_user_login ='${User}'`;
+    const result = await client.query(query);
+    console.log(result.rows);
+    const jsonData = result.rows.map((row) => ({
+      User: row.hdpm_user_login,
+      Roll: row.hdpm_level,
+    }));
+    res.status(200).json(jsonData);
     await DisconnectPG_DB(client);
   } catch (error) {
     writeLogError(error.message, query);

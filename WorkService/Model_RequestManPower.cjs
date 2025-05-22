@@ -302,7 +302,7 @@ module.exports.GetRequestJobGrade = async function (req, res) {
   try {
     const client = await ConnectPG_DB();
     const { DDLPosition, DDLFacrtory } = req.body;
-    query = `select j.hdpj_job 
+    query = `select  distinct j.hdpj_job 
               from "HR".hrdw_position_map_job j 
               where j.hdpj_position_group = '${DDLPosition}'
               and j.hdpj_factory ='${DDLFacrtory}'

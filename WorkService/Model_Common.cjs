@@ -15,32 +15,9 @@ module.exports.GetMenu = async function (req, res) {
   try {
     const Conn = await ConnectOracleDB("CUSR");
     const { Roll } = req.body;
-    console;
-    if (Roll != "") {
-      query = `
-      SELECT DISTINCT 
-       M.MENU_NAME,
-       M.MENU_CODE,
-       M.MENU_ID,
-       M.MENU_PARENT_ID,
-       M.MENU_SORT,
-       M.MENU_URL
-     FROM
-       CU_ROLE_MENU R
-     INNER JOIN CU_MENU_M M ON
-       M.MENU_ID = R.MENU_ID
-     WHERE
-       1 = 1
-       AND SYSTEM_ID = '73'
-       AND ROLE_ID IN (${Roll})
-     ORDER BY
-       CASE
-         WHEN MENU_NAME = 'Home' THEN 0
-         ELSE 1
-       END,
-       MENU_ID,
-       MENU_SORT`;
-    } else {
+    console.log('Rolll99',Roll)
+    if (Roll=='') {
+      console.log('Rolll991',Roll)
       query = `
        SELECT DISTINCT 
           M.MENU_NAME,
@@ -64,6 +41,32 @@ module.exports.GetMenu = async function (req, res) {
           END,
           MENU_ID,
           MENU_SORT`;
+    } else {
+      console.log('Rolll992',Roll)
+      query = `
+      SELECT DISTINCT 
+       M.MENU_NAME,
+       M.MENU_CODE,
+       M.MENU_ID,
+       M.MENU_PARENT_ID,
+       M.MENU_SORT,
+       M.MENU_URL
+     FROM
+       CU_ROLE_MENU R
+     INNER JOIN CU_MENU_M M ON
+       M.MENU_ID = R.MENU_ID
+     WHERE
+       1 = 1
+       AND SYSTEM_ID = '73'
+       AND (ROLE_ID IN (${Roll}) OR GROUP_MENU = 'N')
+     ORDER BY
+       CASE
+         WHEN MENU_NAME = 'Home' THEN 0
+         ELSE 1
+       END,
+       MENU_ID,
+       MENU_SORT`;
+     
     }
 
     console.log(query);
