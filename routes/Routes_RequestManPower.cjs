@@ -47,6 +47,6 @@ router.post("/UploadSub", ManPowerRequest.UploadSub);
 router.post("/HomeStatusCountManPower", ManPowerRequest.HomeStatusCountManPower);
 router.post("/UploadHr", ManPowerRequest.UploadHr);
 router.post("/GetDepartmentMasterList", ManPowerRequest.GetDepartmentMasterList);
-
+router.post("/GetUserJoinHr", ManPowerRequest.GetUserJoinHr);
 
 module.exports = router;

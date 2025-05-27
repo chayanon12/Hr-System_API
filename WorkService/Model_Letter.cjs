@@ -590,7 +590,8 @@ module.exports.SearchLetter = async function (req, res) {
             to_char(h.lth_req_date,'DD/MM/YY') as req_date,
                 c.hdcm_desc as status,
                 h.lth_update_by as last_by,
-            to_char(h.lth_update_date,'DD/MM/YY') as last_date
+            to_char(h.lth_update_date,'DD/MM/YY') as last_date,
+            h.lth_req_status as status_value
             from "HR".HRDWLT_HEADER H
             inner join "CUSR".cu_factory_m F  on h.lth_factory = f.factory_code
             inner join "CUSR".cu_user_m M on h.lth_req_by =  m.user_emp_id
@@ -632,6 +633,7 @@ module.exports.SearchLetter = async function (req, res) {
       Status: row.status,
       LastBy: row.last_by,
       LastDate: row.last_date,
+      Status_value: row.status_value,
     }));
     res.status(200).json(jsonData);
     await DisconnectPG_DB(client);

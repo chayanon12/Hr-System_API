@@ -237,7 +237,7 @@ module.exports.GetForDept = async function (req, res) {
               from "HR".hrdw_dept_master d 
               where d.hddm_status = 'A' 
               and d.hddm_factory  = '${Factory}'																					
-              order by d.hddm_sort,d.hddm_dept_name`;
+              order by d.hddm_dept asc`;
     const result = await client.query(query);
     const jsonData = result.rows.map((row) => ({
       value: row.hddm_dept,
@@ -1686,3 +1686,30 @@ console.log(query, "HomeStatusCountManPower");
   }
 };
 
+module.exports.GetUserJoinHr = async function (req, res) {
+  var query = "";
+  try {
+    const Conn = await ConnectOracleDB("CUSR");
+    const { IdCode } = req.body;
+    query = `SELECT 
+              t.ENAME,
+              t.ESURNAME,
+              to_char(t.join_date, 'DD/MM/YYYY') AS joindate
+            FROM cusr.cu_user_humantrix t
+            WHERE t.empcode = '${IdCode}'`;
+    console.log(query);
+    const result = await Conn.execute(query);
+    console.log(result.rows)
+    const jsonData = result.rows.map((row) => ({
+      Name: row[0],
+      Sername: row[1],
+      JoinDate: row[2],
+    }));
+    res.status(200).json(jsonData);
+    DisconnectOracleDB(Conn);
+  } catch (error) {
+    writeLogError(error.message, query);
+    res.status(500).json({ message: error.message });
+    console.log(error);
+  }
+};
