@@ -19,4 +19,6 @@ router.post("/GetDeptallFac", Letter.GetDeptallFac);
 router.post("/SearchLetter", Letter.SearchLetter);
 router.post("/GetFactoryLetter", Letter.GetFactoryLetter);
 router.post("/GetHrStarffLetter", Letter.GetHrStarffLetter);
+router.post("/HomeStatusCountLetter", Letter.HomeStatusCountLetter);
+
 module.exports = router;

@@ -13,17 +13,17 @@ module.exports.GetFactory = async function (req, res) {
   try {
     const client = await ConnectPG_DB();
     const { User_login } = req.body;
-    // console.log(User_login,'GetFactory');
+
     query = `select distinct f.factory_name as REQ_FACTORY,pmm.hdpm_factory from "HR".hrdw_person_master pmm ,"CUSR".cu_factory_m f																																																
               where pmm.hdpm_factory = f.factory_code and pmm.hdpm_for = 'MAN POWER'																																																
               and pmm.hdpm_person_sts = 'A' and pmm.hdpm_user_login = '${User_login}'`;
     const result = await client.query(query);
-    console.log(result.rows, "GetFactory");
+
     const jsonData = result.rows.map((row) => ({
       value: row.hdpm_factory,
       label: row.req_factory,
     }));
-    console.log(jsonData, "GetFactory");
+
     res.status(200).json(jsonData);
     await DisconnectPG_DB(client);
   } catch (error) {
@@ -37,17 +37,16 @@ module.exports.GetFactoryIssue = async function (req, res) {
   try {
     const client = await ConnectPG_DB();
     const { User_login } = req.body;
-    // console.log(User_login,'GetFactory');
+
     query = `select distinct f.factory_name as REQ_FACTORY,pmm.hdpm_factory from "HR".hrdw_person_master pmm ,"CUSR".cu_factory_m f																																																
               where pmm.hdpm_factory = f.factory_code and pmm.hdpm_for = 'MAN POWER'																																																
               and pmm.hdpm_level = 'ISSUE' and pmm.hdpm_person_sts = 'A' and pmm.hdpm_user_login = '${User_login}'`;
     const result = await client.query(query);
-    console.log(result.rows, "GetFactory",query);
+
     const jsonData = result.rows.map((row) => ({
       value: row.hdpm_factory,
       label: row.req_factory,
     }));
-    console.log(jsonData, "GetFactory");
     res.status(200).json(jsonData);
     await DisconnectPG_DB(client);
   } catch (error) {
@@ -60,16 +59,12 @@ module.exports.GetFactoryMasterlist = async function (req, res) {
   var query = "";
   try {
     const client = await ConnectPG_DB();
-    const { User_login } = req.body;
-    // console.log(User_login,'GetFactory');
     query = `select factory_code,factory_name from  "CUSR".cu_factory_m`;
     const result = await client.query(query);
-    console.log(result.rows, "GetFactory",query);
     const jsonData = result.rows.map((row) => ({
       value: row.factory_code,
       label: row.factory_name,
     }));
-    console.log(jsonData, "GetFactory");
     res.status(200).json(jsonData);
     await DisconnectPG_DB(client);
   } catch (error) {
@@ -88,7 +83,6 @@ module.exports.GetPosition = async function (req, res) {
               where pjj.hdpj_factory ='${DDLFactory}'					
               order by pjj.hdpj_position_group`;
     const result = await client.query(query);
-    console.log(result.rows, "GetPosition");
     const jsonData = result.rows.map((row) => ({
       value: row.hdpj_position_group,
       label: row.hdpj_position_group,
@@ -114,7 +108,7 @@ module.exports.GetDepartment = async function (req, res) {
               and pmm.hdpm_user_login =  '${User_login}'
               order by pmm.hdm_dept`;
     const result = await client.query(query);
-    console.log(result.rows, "GetDepartment");
+
     const jsonData = result.rows.map((row) => ({
       value: row.hdm_dept,
       label: row.hdm_dept,
@@ -140,7 +134,7 @@ module.exports.GetDepartmentMasterList = async function (req, res) {
               and pmm.hdpm_factory='${Fac}'
               order by pmm.hdm_dept`;
     const result = await client.query(query);
-    console.log(result.rows, "GetDepartment",query);
+
     const jsonData = result.rows.map((row) => ({
       value: row.hdm_dept,
       label: row.hdm_dept,
@@ -166,7 +160,6 @@ module.exports.GetDepartmentIssue = async function (req, res) {
               and pmm.hdpm_user_login =  '${User_login}'
               order by pmm.hdm_dept`;
     const result = await client.query(query);
-    console.log(result.rows, "GetDepartment");
     const jsonData = result.rows.map((row) => ({
       value: row.hdm_dept,
       label: row.hdm_dept,
@@ -184,15 +177,13 @@ module.exports.GetJobGrade = async function (req, res) {
   try {
     const client = await ConnectPG_DB();
     const { DDLFactory, DDLPosition } = req.body;
-    console.log(DDLFactory, DDLPosition, "getgob000");
+
     query = `select distinct jgg.hdpj_job 
               from "HR".hrdw_position_map_job jgg 
               where jgg.hdpj_factory  = '${DDLFactory}' 
               and jgg.hdpj_position_group in (${DDLPosition})
               order by jgg.hdpj_job`;
-    console.log(query, "getgob");
     const result = await client.query(query);
-    console.log(result.rows, "GetJobGrade");
     const jsonData = result.rows.map((row) => ({
       value: row.hdpj_job,
       label: row.hdpj_job,
@@ -209,7 +200,6 @@ module.exports.GetEmployeeType = async function (req, res) {
   var query = "";
   try {
     const client = await ConnectPG_DB();
-    // const {DDLFactory,DDLPosition} = req.body;
     query = `select cm.hdcm_code,cm.hdcm_desc 
               from "HR".hrdw_code_master cm 
               where cm.hdcm_group = 'MR03' 
@@ -255,7 +245,6 @@ module.exports.GetEducation = async function (req, res) {
   var query = "";
   try {
     const client = await ConnectPG_DB();
-    // const {Factory} = req.body;
     query = `select cm.hdcm_code,cm.hdcm_desc 
               from "HR".hrdw_code_master cm 
               where cm.hdcm_group = 'MR04' 
@@ -278,7 +267,6 @@ module.exports.GetCourse = async function (req, res) {
   var query = "";
   try {
     const client = await ConnectPG_DB();
-    // const {Factory} = req.body;
     query = `select cm.hdcm_code,cm.hdcm_desc 
               from "HR".hrdw_code_master cm 
               where cm.hdcm_group = 'MR05' 
@@ -324,7 +312,6 @@ module.exports.GetField = async function (req, res) {
   var query = "";
   try {
     const client = await ConnectPG_DB();
-    // const {DDLPosition,DDLFacrtory} = req.body;
     query = `select cm.hdcm_code,cm.hdcm_desc 
               from "HR".hrdw_code_master cm 
               where cm.hdcm_group = 'MR06' 
@@ -347,7 +334,6 @@ module.exports.GetEnglish = async function (req, res) {
   var query = "";
   try {
     const client = await ConnectPG_DB();
-    // const {DDLPosition,DDLFacrtory} = req.body;
     query = `select cm.hdcm_code,cm.hdcm_desc 
               from "HR".hrdw_code_master cm 
               where cm.hdcm_group = 'MR07' 
@@ -413,15 +399,12 @@ module.exports.GenRunNo = async function (req, res) {
   try {
     const client = await ConnectPG_DB();
     const { Fac_code, Fac_Desc } = req.body;
-    console.log(Fac_Desc, Fac_code, "-------");
     query = `SELECT 'M-' || '${Fac_Desc}' || '-' || TO_CHAR(CURRENT_DATE, 'YYMM') || '-' ||
               TO_CHAR(COALESCE(MAX(CAST(SUBSTR(mrh_req_no, 11, 3) AS INTEGER)), 0) + 1, 'FM000') AS RUNNING
               FROM "HR".HRDWMR_HEADER
               WHERE mrh_factory = '${Fac_code}'
               and substring(mrh_req_no,6,4) = TO_CHAR(CURRENT_DATE, 'YYMM')`;
-    console.log(query);
     const result = await client.query(query);
-    console.log(result.rows);
     const jsonData = result.rows.map((row) => ({
       RUNNING: row.running,
     }));
@@ -443,9 +426,7 @@ module.exports.FindStatusCodebyDesc = async function (req, res) {
             where cm.hdcm_group = 'MR01'																																											
             and cm.hdcm_status  = 'A'
             and hdcm_desc = '${Status_Desc}'`;
-    console.log(query);
     const result = await client.query(query);
-    console.log(result.rows);
     const jsonData = result.rows.map((row) => ({
       StatusCode: row.hdcm_code,
       StatusDesc: row.hdcm_desc,
@@ -463,16 +444,14 @@ module.exports.GetStatusSearch = async function (req, res) {
   try {
     const client = await ConnectPG_DB();
     const { type } = req.body;
-    const formattype= `(${type.map((s) => `'${s}'`).join(', ')})`;
+    const formattype = `(${type.map((s) => `'${s}'`).join(", ")})`;
     query = `select cm.hdcm_code,cm.hdcm_desc																																											
             from "HR".hrdw_code_master cm																																											
             where cm.hdcm_group = 'MR01'																																											
             and cm.hdcm_status  = 'A'
             and cm.hdcm_cmmt1 in ${formattype}
             `;
-    console.log(query);
     const result = await client.query(query);
-    console.log(result.rows);
     const jsonData = result.rows.map((row) => ({
       label: row.hdcm_desc,
       value: row.hdcm_code,
@@ -505,7 +484,6 @@ module.exports.InsGenNoRequest = async function (req, res) {
       Remark,
       Create_by,
     } = req.body;
-    console.log(req.body, "InsGenNoRequest");
     const query1 = `
     insert into "HR".hrdwmr_header(
       mrh_req_no,
@@ -554,7 +532,6 @@ module.exports.InsGenNoRequest2 = async function (req, res) {
   try {
     client = await ConnectPG_DB();
     const { ReqNo, EmpType, txt_Other, Create_by, Emp_Req } = req.body;
-    console.log(req.body, "InsGenNoRequest");
 
     const query1 = `
         MERGE INTO "HR".hrdwmr_person_det AS target
@@ -591,7 +568,6 @@ module.exports.InsGenNoRequest2 = async function (req, res) {
                     '${EmpType || ""}',
                     current_timestamp,
                     '${Create_by || ""}')`;
-    console.log(query1);
     const result = await client.query(query1);
     res.status(200).json(result.rows);
     await DisconnectPG_DB(client);
@@ -615,7 +591,6 @@ module.exports.GetDepartmentManager = async function (req, res) {
               and t.hdm_dept = '${Sl_Department}'															
               order by t.hdpm_priority ,t.hdpm_user_login`;
     const result = await client.query(query);
-    console.log(result.rows);
     const jsonData = result.rows.map((row) => ({
       value: row.hdpm_user_login,
       label: row.hdpm_user_login,
@@ -642,7 +617,6 @@ module.exports.GetFMDM = async function (req, res) {
               --and t.hdm_dept = '${Sl_Department}'										
               order by t.hdpm_priority ,t.hdpm_user_login	`;
     const result = await client.query(query);
-    console.log(result.rows);
     const jsonData = result.rows.map((row) => ({
       value: row.hdpm_user_login,
       label: row.hdpm_user_login,
@@ -669,7 +643,6 @@ module.exports.GetHrManager = async function (req, res) {
             --and t.hdm_dept = '${Sl_Department}'
             order by t.hdpm_priority ,t.hdpm_user_login	`;
     const result = await client.query(query);
-    console.log(result.rows);
     const jsonData = result.rows.map((row) => ({
       value: row.hdpm_user_login,
       label: row.hdpm_user_login,
@@ -710,9 +683,8 @@ module.exports.SaveDraft = async function (req, res) {
       HRMBy,
       UpdateBy,
       Status,
-      Position
+      Position,
     } = req.body;
-    console.log(req.body, "SaveDraft");
     query = `
             update "HR".hrdwmr_header set
               ----step1
@@ -750,9 +722,7 @@ module.exports.SaveDraft = async function (req, res) {
               end
             where
               mrh_req_no = '${ReqNo}'`;
-    console.log(query, "QuerySaveDraft");
     const result = await client.query(query);
-    console.log(result.rows, "SaveDraft2");
     res.status(200).json(result.rows);
     await DisconnectPG_DB(client);
   } catch (error) {
@@ -784,7 +754,6 @@ module.exports.InsPerson = async function (req, res) {
       FilenameServer,
       Create_by,
     } = req.body;
-    console.log(req.body, "InsPerson");
     query = `
             MERGE INTO "HR".hrdwmr_person AS target
             USING (SELECT 
@@ -844,9 +813,7 @@ module.exports.InsPerson = async function (req, res) {
                     current_timestamp,
                     '${Create_by}'
                 )`;
-    console.log(query, "QueryInsPerson");
     const result = await client.query(query);
-    console.log(result.rows, "SaveDraft2");
     res.status(200).json(result.rows);
     await DisconnectPG_DB(client);
   } catch (error) {
@@ -869,7 +836,6 @@ module.exports.InsPersonDetail = async function (req, res) {
       value_add,
       Create_by,
     } = req.body;
-    console.log(req.body, "InsPersonDetail");
     query = `
             MERGE INTO "HR".hrdwmr_person_det AS target
             USING (SELECT
@@ -908,9 +874,7 @@ module.exports.InsPersonDetail = async function (req, res) {
                     current_timestamp,
                     '${Create_by || ""}'
                 )`;
-    console.log(query, "QueryInsPersonDetail");
     const result = await client.query(query);
-    console.log(result.rows, "Detail");
     res.status(200).json(result.rows);
     await DisconnectPG_DB(client);
   } catch (error) {
@@ -934,12 +898,12 @@ module.exports.SearchManPower = async function (req, res) {
       DateTo,
       ReqBy,
       JobGrade,
-      Status
+      Status,
     } = req.body;
-    const formattedStatus = Status && Status.length > 0
-  ? `(${Status.map((s) => `'${s}'`).join(', ')})`
-  :[];
-    console.log(formattedStatus, "SearchManPower");
+    const formattedStatus =
+      Status && Status.length > 0
+        ? `(${Status.map((s) => `'${s}'`).join(", ")})`
+        : [];
     query = `
           SELECT
               M.factory_name AS FAC,
@@ -985,9 +949,7 @@ module.exports.SearchManPower = async function (req, res) {
                 H.mrh_req_status
           ORDER BY H.mrh_req_no desc`;
 
-    console.log(query);
     const result = await client.query(query);
-    console.log(result.rows, "SearchManPower");
     const jsonData = result.rows.map((row) => ({
       Factory: row.fac,
       Department: row.dept,
@@ -1025,15 +987,16 @@ module.exports.SearchManPowerApprove = async function (req, res) {
       ReqBy,
       JobGrade,
       Status,
-      UserApprove
+      UserApprove,
     } = req.body;
-    const formattedStatus = Status && Status.length > 0
-  ? `(${Status.map((s) => `'${s}'`).join(', ')})`
-  :[];
-    const formattedFactory = Factory && Factory.length > 0
-    ? `(${Factory.map((s) => `'${s}'`).join(', ')})`
-    :[];
-    console.log(formattedFactory, "formattedFactory");
+    const formattedStatus =
+      Status && Status.length > 0
+        ? `(${Status.map((s) => `'${s}'`).join(", ")})`
+        : [];
+    const formattedFactory =
+      Factory && Factory.length > 0
+        ? `(${Factory.map((s) => `'${s}'`).join(", ")})`
+        : [];
     query = `
     SELECT
         M.factory_name AS FAC,
@@ -1080,11 +1043,8 @@ module.exports.SearchManPowerApprove = async function (req, res) {
           H.mrh_update_date,
           H.mrh_req_status
     ORDER BY H.mrh_req_no desc`;
-    
 
-    console.log(query);
     const result = await client.query(query);
-    console.log(result.rows, "SearchManPower");
     const jsonData = result.rows.map((row) => ({
       Factory: row.fac,
       Department: row.dept,
@@ -1112,7 +1072,6 @@ module.exports.GetDataEdit = async function (req, res) {
   try {
     const client = await ConnectPG_DB();
     const { ReqNo } = req.body;
-    console.log(ReqNo, "GetDataEdit");
     query = `select H.*,
                 C.hdcm_desc as STS_DESC,
                 C.hdcm_cmmt1 as StatusType,
@@ -1129,7 +1088,6 @@ module.exports.GetDataEdit = async function (req, res) {
               INNER JOIN "HR".hrdw_code_master C ON H.mrh_req_status = C.hdcm_code
               WHERE 1=1
               and H.mrh_req_no ='${ReqNo}'`;
-    console.log(query);
     const result = await client.query(query);
 
     const jsonData = result.rows.map((row) => ({
@@ -1204,11 +1162,8 @@ module.exports.GetDataDetailStep1 = async function (req, res) {
   try {
     const client = await ConnectPG_DB();
     const { ReqNo } = req.body;
-    console.log(ReqNo, "GetDataDetailStep1");
     query = `select * from "HR".hrdwmr_person_det where mrpd_category = 'REQUIREMENT' AND mrpd_hreq_no='${ReqNo}'  `;
-    console.log(query);
     const result = await client.query(query);
-    console.log(result.rows, "GetDataDetailStep1>>>>");
     const jsonData = result.rows.map((row) => ({
       //Step1
       CB_EmpRequirment: row.mrpd_value,
@@ -1229,11 +1184,8 @@ module.exports.GetDataPerson = async function (req, res) {
   try {
     const client = await ConnectPG_DB();
     const { ReqNo } = req.body;
-    console.log(ReqNo, "GetDataPerson1");
     query = `select *,TO_CHAR(mrp_join_date,'DD/MM/YYYY') as join_date from  "HR".HRDWMR_PERSON where mrp_hreq_no='${ReqNo}' `;
-    console.log(query);
     const result = await client.query(query);
-    console.log(result.rows, "GetDataPerson33>>>>");
     const jsonData = result.rows.map((row) => ({
       //Step1
       ReqNo: row.mrp_hreq_no,
@@ -1258,7 +1210,6 @@ module.exports.GetDataPerson = async function (req, res) {
       Hr_EmpSername: row.mrp_new_sname,
       Hr_JoinDate: row.join_date,
     }));
-    console.log(jsonData.join_date, "jsonData");
     res.status(200).json(jsonData);
     await DisconnectPG_DB(client);
   } catch (error) {
@@ -1273,11 +1224,8 @@ module.exports.GetDataPersonDetail = async function (req, res) {
   try {
     const client = await ConnectPG_DB();
     const { ReqNo } = req.body;
-    // console.log(ReqNo, "GetDataPerson1");
     query = `select * from "HR".hrdwmr_person_det where mrpd_hreq_no='${ReqNo}' order by mrpd_hreq_no,mrpd_record_id`;
-    console.log(query);
     const result = await client.query(query);
-    console.log(result.rows, "GetDataPerson>>>>");
     const jsonData = result.rows.map((row) => ({
       ReqNo: row.mrpd_hreq_no,
       Rec_Id: row.mrpd_record_id,
@@ -1301,9 +1249,7 @@ module.exports.DelDataPersonDetail = async function (req, res) {
     const { ReqNo } = req.body;
     query = ` delete from  "HR".hrdwmr_person_det
               where mrpd_hreq_no = '${ReqNo}'`;
-    console.log(query);
     const result = await client.query(query);
-    console.log(result.rows, "DelDataPersonDetail>>>>");
     res.status(200).json(result.rows);
     await DisconnectPG_DB(client);
   } catch (error) {
@@ -1325,9 +1271,7 @@ module.exports.GetEmail = async function (req, res) {
                 "HR".hrdw_person_master
               where
                 hdpm_user_login ='${user}'`;
-    console.log(query);
     const result = await client.query(query);
-    console.log(result.rows, "GetEmail>>>>");
     const jsonData = result.rows.map((row) => ({
       User: row.hdpm_user_login,
       Email: row.hdpm_email,
@@ -1357,7 +1301,6 @@ module.exports.UpdateApprove = async function (req, res) {
       statusNext,
       UpdateBy,
     } = req.body;
-    console.log(req.body, "UpdateApprove");
     query = `update  "HR".HRDWMR_HEADER set
  			        mrh_dept_date = case
                 when '${status}' = 'MR0102' then current_timestamp
@@ -1382,9 +1325,7 @@ module.exports.UpdateApprove = async function (req, res) {
               mrh_req_status='${statusNext}'
               where mrh_req_no ='${ReqNo}'
               `;
-    console.log(query);
     const result = await client.query(query);
-    console.log(result.rows, "GetEmail>>>>");
     res.status(200).json(result.rows);
     await DisconnectPG_DB(client);
   } catch (error) {
@@ -1418,9 +1359,7 @@ module.exports.UpdateReject = async function (req, res) {
               mrh_req_status='${statusNext}'
               where mrh_req_no ='${ReqNo}' `;
 
-    console.log(query);
     const result = await client.query(query);
-    console.log(result.rows, "GetEmail>>>>");
     res.status(200).json(result.rows);
     await DisconnectPG_DB(client);
   } catch (error) {
@@ -1439,7 +1378,6 @@ module.exports.GetConditionForClose = async function (req, res) {
             from "HR".hrdw_code_master hcm 
             where hdcm_group='MR08'	`;
     const result = await client.query(query);
-    console.log(result.rows);
     const jsonData = result.rows.map((row) => ({
       value: row.hdcm_code,
       label: row.hdcm_desc,
@@ -1469,7 +1407,6 @@ module.exports.SaveDarftHr = async function (req, res) {
       Req_Status,
       UpdateByLast,
     } = req.body;
-    console.log(req.body, "SaveDarftHr");
     query = `update  "HR".HRDWMR_HEADER set 
                 mrh_req_status='${Req_Status}',
                 mrh_hrs_status='${Radio_Status}',
@@ -1492,9 +1429,7 @@ module.exports.SaveDarftHr = async function (req, res) {
                 mrh_update_by='${UpdateByLast}',
                 mrh_update_date=current_timestamp
               where mrh_req_no ='${ReqNo}'`;
-    console.log(query);
     const result = await client.query(query);
-    console.log(result.rows);
 
     res.status(200).json(result.rows);
     await DisconnectPG_DB(client);
@@ -1535,9 +1470,7 @@ module.exports.UpdateUserJoin = async function (req, res) {
             and mrp_hreq_no='${ReqNo}'
             and mrp_record_id ='${RecId}'`;
 
-    console.log(query);
     const result = await client.query(query);
-    console.log(result.rows, "UpdateUserJoin>>>>");
     res.status(200).json(result.rows);
     await DisconnectPG_DB(client);
   } catch (error) {
@@ -1557,7 +1490,6 @@ module.exports.GetHrStarff = async function (req, res) {
             hdpm_level ='HR STAFF' and 
             hdpm_user_login ='${User}'`;
     const result = await client.query(query);
-    console.log(result.rows);
     const jsonData = result.rows.map((row) => ({
       User: row.hdpm_user_login,
       Roll: row.hdpm_level,
@@ -1575,22 +1507,19 @@ module.exports.UploadSub = async function (req, res) {
   try {
     const client = await ConnectPG_DB();
     const { fileData, ReqNo } = req.body;
-    console.log(fileData,'HA')
-    const buffer = Buffer.from(fileData, 'base64'); 
+    const buffer = Buffer.from(fileData, "base64");
     query = `
       UPDATE "HR".HRDWMR_HEADER SET 
       mrh_subs_fileserver = $1
       WHERE mrh_req_no = $2`;
     const result = await client.query(query, [buffer, ReqNo]);
-    console.log('HAHAHAHA :', result);
     res.status(200).send({
-      message: 'File uploaded successfully',
+      message: "File uploaded successfully",
     });
     await DisconnectPG_DB(client);
   } catch (error) {
     writeLogError(error.message, query);
     res.status(500).json({ message: error.message });
-    console.log(error.message,'UploadFileDetail');
   }
 };
 
@@ -1599,22 +1528,20 @@ module.exports.UploadHr = async function (req, res) {
   try {
     const client = await ConnectPG_DB();
     const { fileData, ReqNo } = req.body;
-    console.log(fileData,'HA')
-    const buffer = Buffer.from(fileData, 'base64'); 
+    const buffer = Buffer.from(fileData, "base64");
     query = `
       UPDATE "HR".HRDWMR_HEADER SET 
       mrh_hrs_fileserver = $1
       WHERE mrh_req_no = $2`;
     const result = await client.query(query, [buffer, ReqNo]);
-    console.log('HAHAHAHA :', result);
     res.status(200).send({
-      message: 'File uploaded successfully',
+      message: "File uploaded successfully",
     });
     await DisconnectPG_DB(client);
   } catch (error) {
     writeLogError(error.message, query);
     res.status(500).json({ message: error.message });
-    console.log(error.message,'UploadFileDetail');
+    console.log(error.message, "UploadFileDetail");
   }
 };
 
@@ -1623,11 +1550,8 @@ module.exports.HomeStatusCountManPower = async function (req, res) {
   try {
     const client = await ConnectPG_DB();
     const { UserLogin, Roll } = req.body;
-    console.log(Roll, "formattedRoll");
-    const formattedRoll = Roll && Roll.length > 0
-    ? `(${Roll.join(', ')})`
-    : [];
-    console.log(formattedRoll, "formattedRoll2");
+    console.log(UserLogin, Roll, "UserLogin and Roll");
+    const formattedRoll = Roll && Roll.length > 0 ? `(${Roll.join(", ")})` : [];
     query = `
       SELECT COUNT(*) AS total, 'Create' AS status
       FROM "HR".HRDWMR_HEADER
@@ -1666,23 +1590,26 @@ module.exports.HomeStatusCountManPower = async function (req, res) {
               ELSE 0
           END AS total,
           'WaitHRStaff' AS status`;
-console.log(query, "HomeStatusCountManPower");
     const result = await client.query(query);
-
-    const separatedData = result.rows.map(row => ({ [row.status]: row.total }));
+console.log(query, "result.rows");
+    const separatedData = result.rows.map((row) => ({
+      [row.status]: row.total,
+    }));
 
     // คำนวณ total รวมของทุก object
-    const totalSum = result.rows.reduce((sum, row) => sum + parseInt(row.total, 10), 0);
-    
+    const totalSum = result.rows.reduce(
+      (sum, row) => sum + parseInt(row.total, 10),
+      0
+    );
+
     // เพิ่ม total รวมเข้าไปใน array
     separatedData.push({ Total: totalSum });
-    
+
     res.status(200).json(separatedData);
     await DisconnectPG_DB(client);
   } catch (error) {
     writeLogError(error.message, query);
     res.status(500).json({ message: error.message });
-    console.log(error.message,'UploadFileDetail');
   }
 };
 
@@ -1697,9 +1624,7 @@ module.exports.GetUserJoinHr = async function (req, res) {
               to_char(t.join_date, 'DD/MM/YYYY') AS joindate
             FROM cusr.cu_user_humantrix t
             WHERE t.empcode = '${IdCode}'`;
-    console.log(query);
     const result = await Conn.execute(query);
-    console.log(result.rows)
     const jsonData = result.rows.map((row) => ({
       Name: row[0],
       Sername: row[1],
@@ -1710,6 +1635,5 @@ module.exports.GetUserJoinHr = async function (req, res) {
   } catch (error) {
     writeLogError(error.message, query);
     res.status(500).json({ message: error.message });
-    console.log(error);
   }
 };

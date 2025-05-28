@@ -39,7 +39,7 @@ app.get('/download/:filename', (req, res) => {
   const filename = req.params.filename;
   const filePath = path.join('/usr/src/app/FileFomat/', filename);
 
-  console.log('Attempting to download:', filePath);
+
 
   res.download(filePath, filename, (err) => {
     if (err) {

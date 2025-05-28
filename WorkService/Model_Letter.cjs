@@ -31,7 +31,7 @@ module.exports.GetDataPersonByIDCode = async function (req, res) {
                	AND  t.work_location = f.factory_name																					
                 AND t.empcode =   '${Id_Code}'`;
     const result = await Conn.execute(query);
-    console.log(result.rows, "may");
+ 
     if (result.rows.length > 0) {
       dept = await GetDept(result.rows[0][3]);
       console.log(dept, "maydept");
@@ -374,8 +374,6 @@ module.exports.UpdateSvApprove = async function (req, res) {
   }
 };
 
-//
-
 module.exports.GetConditionClose = async function (req, res) {
   var query = "";
   try {
@@ -696,6 +694,52 @@ module.exports.GetHrStarffLetter = async function (req, res) {
       Roll: row.hdpm_level,
     }));
     res.status(200).json(jsonData);
+    await DisconnectPG_DB(client);
+  } catch (error) {
+    writeLogError(error.message, query);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+
+module.exports.HomeStatusCountLetter = async function (req, res) {
+  let query = "";
+  try {
+    const client = await ConnectPG_DB();
+    const { UserLogin, Roll } = req.body;
+
+    const formattedRoll = Roll && Roll.length > 0 ? `(${Roll.join(", ")})` : [];
+    query = `SELECT COUNT(*) AS total, 'WaitSVApprove' AS status
+              FROM "HR".HRDWLT_HEADER
+              WHERE lth_req_status = 'LT0102'
+                AND lth_sv_by = '${UserLogin}'
+
+              UNION ALL
+
+              SELECT 
+                  CASE 
+                      WHEN '246' in ${formattedRoll} THEN
+                          (SELECT COUNT(*) 
+                          FROM "HR".HRDWLT_HEADER
+                          WHERE lth_req_status IN ('LT0103', 'LT0104'))
+                      ELSE 0
+                  END AS total,
+                  'WaitHRStaff' AS status`;
+    const result = await client.query(query);
+
+    const separatedData = result.rows.map((row) => ({
+      [row.status]: row.total,
+    }));
+
+
+    const totalSum = result.rows.reduce(
+      (sum, row) => sum + parseInt(row.total, 10),
+      0
+    );
+
+    separatedData.push({ Total: totalSum });
+
+    res.status(200).json(separatedData);
     await DisconnectPG_DB(client);
   } catch (error) {
     writeLogError(error.message, query);

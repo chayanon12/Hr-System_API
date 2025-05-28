@@ -15,11 +15,10 @@ module.exports.GetMenu = async function (req, res) {
   try {
     const Conn = await ConnectOracleDB("CUSR");
     const { Roll } = req.body;
-    console.log('Rolll99',Roll)
+console.log(Roll,'rollllllllllllllllllllll')
     if (Roll=='') {
-      console.log('Rolll991',Roll)
       query = `
-       SELECT DISTINCT 
+           SELECT DISTINCT 
           M.MENU_NAME,
           M.MENU_CODE,
           M.MENU_ID,
@@ -27,9 +26,7 @@ module.exports.GetMenu = async function (req, res) {
           M.MENU_SORT,
           M.MENU_URL
         FROM
-          CU_ROLE_MENU R
-        INNER JOIN CU_MENU_M M ON
-          M.MENU_ID = R.MENU_ID
+          CU_MENU_M M 
         WHERE
           1 = 1
           AND SYSTEM_ID = '73'
@@ -42,7 +39,6 @@ module.exports.GetMenu = async function (req, res) {
           MENU_ID,
           MENU_SORT`;
     } else {
-      console.log('Rolll992',Roll)
       query = `
       SELECT DISTINCT 
        M.MENU_NAME,
@@ -52,8 +48,8 @@ module.exports.GetMenu = async function (req, res) {
        M.MENU_SORT,
        M.MENU_URL
      FROM
-       CU_ROLE_MENU R
-     INNER JOIN CU_MENU_M M ON
+       CU_MENU_M M 
+     LEFT JOIN CU_ROLE_MENU R ON
        M.MENU_ID = R.MENU_ID
      WHERE
        1 = 1
@@ -69,7 +65,7 @@ module.exports.GetMenu = async function (req, res) {
      
     }
 
-    console.log(query);
+
     const result = await Conn.execute(query);
 
     const jsonData = result.rows.map((row) => ({
@@ -262,19 +258,16 @@ module.exports.UploadFile = async function (req, res) {
 
 module.exports.GetFileServer = async function (req, res) {
   try {
-    const fileName = "FileManPower.xlsx"; // กำหนดชื่อไฟล์
+    const fileName = "FileManPower.xlsx"; 
     const filePath = path.join(
       __dirname,
       "fetl/data/App_API/HR_api/FileFomat",
       fileName
     );
 
-    // ตรวจสอบว่าไฟล์มีอยู่จริงหรือไม่
     if (!fs.existsSync(filePath)) {
       return res.status(404).json({ message: "File not found" });
     }
-
-    // ส่งไฟล์ไปยัง client
     res.sendFile(filePath, (err) => {
       if (err) {
         console.error("Error sending file:", err);
@@ -317,7 +310,6 @@ module.exports.EmailSend = async function (req, res) {
         html: strEmailFormat,
       };
       if (await transporter.sendMail(mailOptions)) {
-        console.log({ message: "Success", email: emailList });
         res.status(200).json({ message: "Success", email: emailList });
       } else {
         res.status(204).json({ message: "Can not send email" });
@@ -337,7 +329,6 @@ module.exports.UploadFileDetail = async function (req, res) {
   try {
     const client = await ConnectPG_DB();
     const { fileData, ReqNo, RecID } = req.body;
-    console.log(fileData, "may");
     const buffer = Buffer.from(fileData, "base64");
     query = `
         UPDATE "HR".HRDWMR_PERSON SET
@@ -346,7 +337,6 @@ module.exports.UploadFileDetail = async function (req, res) {
           mrp_hreq_no = $2
           and mrp_record_id = '${RecID}'`;
     const result = await client.query(query, [buffer, ReqNo]);
-    console.log("File uploaded successfully:", result);
     res.status(200).send({
       message: "File uploaded successfully",
     });
@@ -364,14 +354,12 @@ module.exports.UploadSub = async function (req, res) {
     const client = await ConnectPG_DB();
     const { fileData, ReqNo, ColumnName } = req.body;
     const buffer = Buffer.from(fileData, "base64");
-    console.log("Upload start", buffer, "Upload end");
+
     query = `
       UPDATE "HR".HRDWMR_HEADER SET 
       mrh_subs_fileserver = $1
       WHERE mrh_req_no =  $2`;
     const result = await client.query(query, [buffer, ReqNo]);
-    console.log(query, "eeeeeeeee", ReqNo);
-    console.log("File uploaded successfully:", result.rows);
     res.status(200).send({
       message: "File uploaded successfully",
     });
@@ -390,14 +378,11 @@ module.exports.UploadAdd = async function (req, res) {
     const client = await ConnectPG_DB();
     const { fileData, ReqNo, ColumnName } = req.body;
     const buffer = Buffer.from(fileData, "base64");
-    console.log("Upload start", buffer, "Upload end");
     query = `
       UPDATE "HR".HRDWMR_HEADER SET 
       mrh_add_fileserver = $1
       WHERE mrh_req_no =  $2`;
     const result = await client.query(query, [buffer, ReqNo]);
-    console.log(query, "eeeeeeeee", ReqNo);
-    console.log("File uploaded successfully:", result.rows);
     res.status(200).send({
       message: "File uploaded successfully",
     });
@@ -431,7 +416,6 @@ module.exports.GetFile = async function (req, res) {
 
     // รันคำสั่ง SQL
     const result = await client.query(query);
-    console.log(result.rows);
     const jsonData = result.rows.map((row) => ({
       SubName: row.mrh_subs_file,
       SubName_File: row.mrh_subs_fileserver,
@@ -459,7 +443,6 @@ module.exports.GetFileDetail = async function (req, res) {
       from  "HR".HRDWMR_PERSON 
       where mrp_hreq_no = '${ReqNo}'`;
     const result = await client.query(query);
-    console.log(result.rows);
     const jsonData = result.rows.map((row) => ({
       RecID: row.mrp_record_id,
       FileName: row.mrp_att_file,
@@ -527,7 +510,6 @@ module.exports.GetEmailHrStaff = async function (req, res) {
 
     // รันคำสั่ง SQL
     const result = await client.query(query);
-    console.log(query);
     const jsonData = result.rows.map((row) => ({
       User: row.hdpm_user_login,
       Email: row.hdpm_email,
