@@ -29,11 +29,12 @@ app.use((req, res, next) => {
 const Common = require("./routes/Routes_Common.cjs")
 const RequestManPower = require("./routes/Routes_RequestManPower.cjs")
 const Letter = require("./routes/Routes_Letter.cjs")
-
+const EmployeeCard = require("./routes/Routes_EmployeeCard.cjs")
 
 app.use("/api/Common", Common);
 app.use("/api/RequestManPower", RequestManPower);
 app.use("/api/RefferenceLetter", Letter);
+app.use("/api/RequestEmployeeCard", EmployeeCard);
 
 app.get('/download/:filename', (req, res) => {
   const filename = req.params.filename;
