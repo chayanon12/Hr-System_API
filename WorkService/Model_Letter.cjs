@@ -746,3 +746,54 @@ module.exports.HomeStatusCountLetter = async function (req, res) {
     res.status(500).json({ message: error.message });
   }
 };
+
+
+module.exports.GetEmailAllHrStarffLetter = async function (req, res) {
+  var query = "";
+  try {
+    const client = await ConnectPG_DB();
+    const { FacCode } = req.body;
+    query = `select hdpm_email,hdpm_user_login 
+            from  "HR".hrdw_person_master 
+            where 1=1  
+            and hdpm_for='LETTER' 
+            and  hdpm_level ='HR STAFF' 
+            and hdpm_factory = '${FacCode}'`;
+    const result = await client.query(query);
+    console.log(result.rows);
+    const jsonData = result.rows.map((row) => ({
+      Email: row.hdpm_email,
+      User: row.hdpm_user_login,
+    }));
+    res.status(200).json(jsonData);
+    await DisconnectPG_DB(client);
+  } catch (error) {
+    writeLogError(error.message, query);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+module.exports.GetEmailSvLetter = async function (req, res) {
+  var query = "";
+  try {
+    const client = await ConnectPG_DB();
+    const { User } = req.body;
+    query = `select distinct  hdpm_email,hdpm_user_login 
+    from  "HR".hrdw_person_master
+    where 1=1  
+    and hdpm_for='LETTER' 
+    and  hdpm_level ='SV' 
+    and hdpm_user_login  = '${User}'`;
+    const result = await client.query(query);
+    console.log(result.rows);
+    const jsonData = result.rows.map((row) => ({
+      Email: row.hdpm_email,
+      User: row.hdpm_user_login,
+    }));
+    res.status(200).json(jsonData);
+    await DisconnectPG_DB(client);
+  } catch (error) {
+    writeLogError(error.message, query);
+    res.status(500).json({ message: error.message });
+  }
+};
